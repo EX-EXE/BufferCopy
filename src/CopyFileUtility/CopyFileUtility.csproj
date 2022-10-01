@@ -2,8 +2,6 @@
 	<PropertyGroup>
 		<PackageVersion>0.1.0</PackageVersion>
 		<TargetFramework>net6.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
 		<RootNamespace>$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 	</PropertyGroup>
 </Project>
