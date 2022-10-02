@@ -2,10 +2,18 @@ name: Release BufferCopy
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: "version(ex. 1.0.0)"
+        required: true
+      release:
+        description: "release"
+        required: true
+        default: "false"
 
 env:
-  GITHUB_TAG: ${{ github.event.inputs.tag }}
-  DRY_RUN: ${{ github.event.inputs.dry-run }}
+  VERSION: ${{ github.event.inputs.version }}
+  RELEASE: ${{ github.event.inputs.release }}
   RUNTIME: "win-x64"
 
 jobs:
@@ -27,7 +35,7 @@ jobs:
       run: dotnet restore
       
     - name: Publish
-      run: dotnet publish ./src/BufferCopy/ -c release --self-contained -p:PublishSingleFile=true -p:PublishTrimmed=true -p:PublishReadyToRun=true -p:Version=${{ env.GITHUB_TAG }} -r ${{ env.RUNTIME }} -o /tmp/publish/${{ env.RUNTIME }}/
+      run: dotnet publish ./src/BufferCopy/ -c release --self-contained -p:PublishSingleFile=true -p:PublishTrimmed=true -p:PublishReadyToRun=true -p:Version=${{ env.VERSION }} -r ${{ env.RUNTIME }} -o /tmp/publish/${{ env.RUNTIME }}/
       
     - name: Upload
       uses: actions/upload-artifact@v2
