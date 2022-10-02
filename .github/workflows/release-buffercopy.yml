@@ -6,6 +6,7 @@ on:
       version:
         description: "version(ex. 1.0.0)"
         required: true
+        default: "0.0.0"
       release:
         description: "release"
         required: true
@@ -42,3 +43,38 @@ jobs:
       with:
           name: ${{ env.RUNTIME }}
           path: /tmp/publish/${{ env.RUNTIME }}/ 
+           
+
+  release:
+    if: github.event.inputs.release == 'true'
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Create GitTag
+        run: git tag Release/${{ env.VERSION }}
+        
+      - name: Push GitTag
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+          tags: true
+          
+      - name: Create Release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: Release/${{ env.VERSION }}
+          release_name: BufferCopy Ver.${{ env.VERSION }}
+          draft: true
+          prerelease: false    
+          
+      
+    
