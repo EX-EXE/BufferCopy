@@ -1,4 +1,4 @@
-name: Build BufferCopy
+name: Release BufferCopy
 
 on:
   workflow_dispatch:
