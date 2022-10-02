@@ -74,7 +74,23 @@ jobs:
           tag_name: Release/${{ env.VERSION }}
           release_name: BufferCopy Ver.${{ env.VERSION }}
           draft: true
-          prerelease: false    
+          prerelease: false
           
+      - name: Download Release Asset
+        uses: actions/download-artifact@v3
+        id: download_asset
+        with:
+          name: ${{ env.RUNTIME }}
+          path: /tmp/release/${{ env.RUNTIME }}/ 
+          
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.download_asset.outputs.download-path }}/BufferCopy.exe
+          asset_name: BufferCopy.exe
+          asset_content_type: application/octet-stream
       
-    
