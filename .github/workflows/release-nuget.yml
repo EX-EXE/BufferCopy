@@ -1,0 +1,36 @@
+name: Release NuGet
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "version(ex. 1.0.0)"
+        required: true
+        default: "0.0.0"
+
+env:
+  VERSION: ${{ github.event.inputs.version }}
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Install .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+
+    - name: Restore
+      run: dotnet restore
+    
+    - name: Nuget Pack
+      run: dotnet pack ./src/CopyFileUtility/ -c release -p:Version=${{ env.VERSION }} -o /tmp/nuget/
+      
+    - name: Nuget Push 
+      run: dotnet nuget push "/tmp/nuget/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }}
