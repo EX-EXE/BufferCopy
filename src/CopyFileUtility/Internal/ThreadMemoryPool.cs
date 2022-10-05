@@ -7,53 +7,42 @@ using System.Threading.Tasks;
 
 namespace CopyFileUtility_Internal
 {
-    internal class ThreadMemory
-    {
-        private ThreadMemoryPool pool;
-        public Memory<byte> Memory { get; init; }
-
-        public ThreadMemory(ThreadMemoryPool pool, Memory<byte> memory)
-        {
-            this.pool = pool;
-            Memory = memory;
-        }
-
-        public void Return()
-        {
-            pool.Return(this);
-        }
-    }
 
     internal class ThreadMemoryPool
     {
-        private ConcurrentQueue<ThreadMemory> queue;
-        private SemaphoreSlim semaphore;
+        public static readonly int PoolSize = 32;
+        private int bitFlag;
+        private int bitPos;
 
-        public ThreadMemoryPool(int bufferSize, int capacity)
+        private int Size;
+        private Memory<byte> buffer;
+
+        public ThreadMemoryPool(int bufferSize)
         {
-            var buffer = new Memory<byte>(new byte[bufferSize * capacity]);
-            var memoryList = new List<ThreadMemory>();
-            for (var i = 0; i < capacity; ++i)
-            {
-                memoryList.Add(new ThreadMemory(this, buffer.Slice(bufferSize * i, bufferSize)));
-            }
-            queue = new ConcurrentQueue<ThreadMemory>(memoryList);
-            semaphore = new SemaphoreSlim(capacity, capacity);
+            bitFlag = 0;
+            bitPos = 0;
+            Size = bufferSize;
+            buffer = new Memory<byte>(new byte[bufferSize * PoolSize]);
         }
 
-        public async ValueTask<ThreadMemory> RentAsync(CancellationToken cancellationToken = default)
+        public (Memory<byte>,int) Rent()
         {
-            await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-            if (queue.TryDequeue(out var data))
+            while(true)
             {
-                return data;
+                if (PoolSize <= ++bitPos)
+                {
+                    bitPos = 0;
+                }
+                if (((bitFlag >> bitPos) & 1) == 0)
+                {
+                    bitFlag |= (1 << bitPos);
+                    return (buffer.Slice(Size * bitPos, Size), bitPos);
+                }
             }
-            throw new InvalidOperationException();
         }
-        public void Return(ThreadMemory data)
+        public void Return(int bitNum)
         {
-            queue.Enqueue(data);
-            semaphore.Release();
+            bitFlag &= ~(1 << bitNum);
         }
     }
 }
