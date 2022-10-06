@@ -82,36 +82,40 @@
         static string ConvertPercentStr(double value)
         {
             var calc = Math.Floor(value * 100.0 * 10.0) / 10.0;
-            return $"{calc:0.0}%";
+            var str = calc.ToString("0.0").PadLeft(5);
+            return $"{str}%";
         }
 
         static string ConvertUnitStr(double value)
         {
+            var calc = (double)0;
+            var unit = string.Empty;
             if (value < KiB)
             {
-                var calc = value;
-                return $"{calc:0.0}B";
+                calc = value;
+                unit = "  B";
             }
             else if (value < MiB)
             {
-                var calc = value / KiB;
-                return $"{calc:0.0}KiB";
+                calc = value / KiB;
+                unit = "KiB";
             }
             else if (value < GiB)
             {
-                var calc = value / MiB;
-                return $"{calc:0.0}MiB";
+                calc = value / MiB;
+                unit = "MiB";
             }
             else if (value < TiB)
             {
-                var calc = value / GiB;
-                return $"{calc:0.0}GiB";
+                calc = value / GiB;
+                unit = "GiB";
             }
             else
             {
-                var calc = value / TiB;
-                return $"{calc:0.0}TiB";
+                calc = value / TiB;
+                unit = "TiB";
             }
+            return calc.ToString("0.0").PadLeft(6) + unit;
         }
     }
 }
