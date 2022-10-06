@@ -12,29 +12,40 @@ namespace Benchmark
     [ShortRunJob]
     public class Test
     {
-        private readonly static string SrcFile = @"C:\Users\EXE\Downloads\ubuntu-22.04.1-desktop-amd64.iso";
-        private readonly static string DstFile = @"D:\Temp\TestData.bin";
+        private static readonly long testFileSize = 3L * 1024L * 1024L * 1024L;
+        private string srcFile = string.Empty;
+        private string dstFile = string.Empty;
 
         public Test()
         {
-        }
-
-        [Benchmark]
-        public void DefaultCopy()
-        {
-            if (System.IO.File.Exists(DstFile))
+            string CreateFile(long fileSize)
             {
-                System.IO.File.Delete(DstFile);
+                var path = System.IO.Path.GetTempFileName();
+                using var stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+                stream.SetLength(fileSize);
+
+                var maxWriteSize = int.MaxValue / 2;
+                while (0 < fileSize)
+                {
+                    var createSize = maxWriteSize < fileSize ? maxWriteSize : fileSize;
+                    fileSize -= createSize;
+                    var data = new byte[createSize];
+                    var rnd = new Random((int)DateTime.Now.Ticks);
+                    rnd.NextBytes(data);
+                    stream.Write(data);
+                }
+                return path;
             }
-            System.IO.File.Copy(SrcFile, DstFile, true);
+            srcFile = CreateFile(testFileSize);
+            dstFile = System.IO.Path.GetTempFileName();
         }
 
         [Benchmark]
         public async Task BufferCopy()
         {
-            if (System.IO.File.Exists(DstFile))
+            if (System.IO.File.Exists(dstFile))
             {
-                System.IO.File.Delete(DstFile);
+                System.IO.File.Delete(dstFile);
             }
             var option = new CopyFileUtility.CopyFileOptions()
             {
@@ -46,17 +57,27 @@ namespace Benchmark
                 var readProgress = x.FileSize <= 0 ? 1.0 : (double)x.ReadedSize / (double)x.FileSize;
                 var writeProgress = x.FileSize <= 0 ? 1.0 : (double)x.WritedSize / (double)x.FileSize;
             });
-            await CopyFileUtility.CopyAsync(SrcFile, DstFile, option, progress);
+            await CopyFileUtility.CopyAsync(srcFile, dstFile, option, progress);
+        }
+
+        [Benchmark]
+        public void DefaultCopy()
+        {
+            if (System.IO.File.Exists(dstFile))
+            {
+                System.IO.File.Delete(dstFile);
+            }
+            System.IO.File.Copy(srcFile, dstFile, true);
         }
 
         [Benchmark]
         public async Task FileTransferManagerCopy()
         {
-            if (System.IO.File.Exists(DstFile))
+            if (System.IO.File.Exists(dstFile))
             {
-                System.IO.File.Delete(DstFile);
+                System.IO.File.Delete(dstFile);
             }
-            await FileTransferManager.CopyWithProgressAsync(SrcFile, DstFile, (x) => {  }, true);
+            await FileTransferManager.CopyWithProgressAsync(srcFile, dstFile, (x) => {  }, true);
         }
     }
 }
