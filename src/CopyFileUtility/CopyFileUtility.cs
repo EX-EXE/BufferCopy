@@ -56,14 +56,7 @@ public partial class CopyFileUtility
                 {
                     return;
                 }
-                try
-                {
-                    await Task.Delay(option.ReportInterval, linkedCancelToken).ConfigureAwait(false);
-                }
-                catch (TaskCanceledException)
-                {
-                    // Through
-                }
+                await Task.Delay(option.ReportInterval, linkedCancelToken).ConfigureAwait(false);
             }
         }, linkedCancelToken);
 
@@ -123,18 +116,25 @@ public partial class CopyFileUtility
         }
         finally
         {
-            if(linkedCancelToken.IsCancellationRequested)
+            if (linkedCancelToken.IsCancellationRequested)
             {
                 if (System.IO.File.Exists(dst))
                 {
                     System.IO.File.Delete(dst);
                 }
             }
+            linkedCancelTokenSource.Cancel();
         }
 
         // Report Wait
-        linkedCancelTokenSource.Cancel();
-        await progressTask.ConfigureAwait(false);
+        try
+        {
+            await progressTask.ConfigureAwait(false);
+        }
+        catch (TaskCanceledException)
+        {
+            // Through
+        }
     }
 
     private static async ValueTask<int> WriteAsync(
