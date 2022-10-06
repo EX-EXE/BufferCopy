@@ -27,6 +27,7 @@ public partial class CopyFileUtility
             {
                 throw new InvalidOperationException($"Exist DstFile : {dst}");
             }
+            System.IO.File.SetAttributes(dst, FileAttributes.Normal);
             System.IO.File.Delete(dst);
         }
         // File
