@@ -19,13 +19,13 @@ public partial class CopyFileUtility
         cancellationToken.ThrowIfCancellationRequested();
         if (!System.IO.File.Exists(src))
         {
-            throw new System.IO.FileNotFoundException();
+            throw new System.IO.FileNotFoundException($"NotFound SrcFile : {src}");
         }
         if (System.IO.File.Exists(dst))
         {
             if (!option.OverrideExistFile)
             {
-                throw new System.IO.FileNotFoundException();
+                throw new InvalidOperationException($"Exist DstFile : {dst}");
             }
             System.IO.File.Delete(dst);
         }
