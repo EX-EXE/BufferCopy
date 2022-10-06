@@ -1,0 +1,30 @@
+name: Benchmark
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+  
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build ./sandbox/Benchmark/Benchmark.csproj -c Release
+    - name: Benchmark
+      run: dotnet run --project ./sandbox/Benchmark/Benchmark.csproj -c Release
+    - name: Upload
+      uses: actions/upload-artifact@v2
+      with:
+          name: Result
+          path: ./sandbox/Benchmark/BenchmarkDotNet.Artifacts/results/
