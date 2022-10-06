@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Benchmark
 {
     [MemoryDiagnoser]
-    [ShortRunJob]
+    //[ShortRunJob]
     public class Test
     {
         private static readonly long testFileSize = 3L * 1024L * 1024L * 1024L;
@@ -41,6 +41,16 @@ namespace Benchmark
         }
 
         [Benchmark]
+        public void DefaultCopy()
+        {
+            if (System.IO.File.Exists(dstFile))
+            {
+                System.IO.File.Delete(dstFile);
+            }
+            System.IO.File.Copy(srcFile, dstFile, true);
+        }
+        
+        [Benchmark]
         public async Task BufferCopy()
         {
             if (System.IO.File.Exists(dstFile))
@@ -58,16 +68,6 @@ namespace Benchmark
                 var writeProgress = x.FileSize <= 0 ? 1.0 : (double)x.WritedSize / (double)x.FileSize;
             });
             await CopyFileUtility.CopyAsync(srcFile, dstFile, option, progress);
-        }
-
-        [Benchmark]
-        public void DefaultCopy()
-        {
-            if (System.IO.File.Exists(dstFile))
-            {
-                System.IO.File.Delete(dstFile);
-            }
-            System.IO.File.Copy(srcFile, dstFile, true);
         }
 
         [Benchmark]
