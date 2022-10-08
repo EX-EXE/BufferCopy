@@ -40,7 +40,7 @@ namespace Benchmark
             dstFile = System.IO.Path.GetTempFileName();
         }
 
-        [Benchmark]
+        [Benchmark(Description = "System.IO.File.Copy")]
         public void DefaultCopy()
         {
             if (System.IO.File.Exists(dstFile))
@@ -70,14 +70,14 @@ namespace Benchmark
             await CopyFileUtility.CopyAsync(srcFile, dstFile, option, progress);
         }
 
-        [Benchmark]
-        public async Task FileTransferManagerCopy()
-        {
-            if (System.IO.File.Exists(dstFile))
-            {
-                System.IO.File.Delete(dstFile);
-            }
-            await FileTransferManager.CopyWithProgressAsync(srcFile, dstFile, (x) => {  }, true);
-        }
+        //[Benchmark]
+        //public async Task FileTransferManagerCopy()
+        //{
+        //    if (System.IO.File.Exists(dstFile))
+        //    {
+        //        System.IO.File.Delete(dstFile);
+        //    }
+        //    await FileTransferManager.CopyWithProgressAsync(srcFile, dstFile, (x) => {  }, true);
+        //}
     }
 }

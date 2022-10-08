@@ -64,10 +64,10 @@ public partial class CopyFileUtility
         {
             // Memory
             var bufferSize = srcFileSize < option.BufferSize ? srcFileSize : option.BufferSize;
-            var memoryPool = new ThreadMemoryPool((int)bufferSize);
+            var memoryPool = new ThreadMemoryPool((int)bufferSize,option.PoolSize);
 
             // Channel
-            var channelOption = new BoundedChannelOptions(ThreadMemoryPool.PoolSize)
+            var channelOption = new BoundedChannelOptions(option.PoolSize)
             {
                 FullMode = BoundedChannelFullMode.Wait,
                 SingleReader = true,

@@ -10,39 +10,42 @@ namespace CopyFileUtility_Internal
 
     internal class ThreadMemoryPool
     {
-        public static readonly int PoolSize = 32;
-        private int bitFlag;
-        private int bitPos;
+        private int pos;
+        private int max;
 
-        private int Size;
-        private Memory<byte> buffer;
+        private volatile int unusedFlag;
+        private int bufferSize;
+        private Memory<byte> bufferData;
 
-        public ThreadMemoryPool(int bufferSize)
+        public ThreadMemoryPool(int bufferSize,int poolSize)
         {
-            bitFlag = 0;
-            bitPos = 0;
-            Size = bufferSize;
-            buffer = new Memory<byte>(new byte[bufferSize * PoolSize]);
+            pos = 0;
+            max = poolSize;
+            unusedFlag = BitUtility.GetFlagInt(poolSize);
+            this.bufferSize = bufferSize;
+            bufferData = new Memory<byte>(new byte[bufferSize * poolSize]);
         }
 
         public (Memory<byte>,int) Rent()
         {
             while(true)
             {
-                if (PoolSize <= ++bitPos)
+                if(max <= pos)
                 {
-                    bitPos = 0;
+                    pos = 0;
                 }
-                if (((bitFlag >> bitPos) & 1) == 0)
+
+                if (((unusedFlag >> pos) & 1) == 1)
                 {
-                    bitFlag |= (1 << bitPos);
-                    return (buffer.Slice(Size * bitPos, Size), bitPos);
+                    unusedFlag &= ~(1 << pos);
+                    return (bufferData.Slice(bufferSize * pos, bufferSize), pos++);
                 }
+                Thread.Yield();
             }
         }
-        public void Return(int bitNum)
+        public void Return(int bitPos)
         {
-            bitFlag &= ~(1 << bitNum);
+            unusedFlag |= (1 << bitPos);
         }
     }
 }

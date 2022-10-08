@@ -1,0 +1,38 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+
+<#
+    static string CreateString(string str,int num)
+    {
+        var builder = new StringBuilder();
+        for(var i = 0;i< num;++i)
+        {
+            builder.Append(str);
+        }
+        return builder.ToString();
+    }
+#>
+
+using System.Runtime.CompilerServices;
+
+namespace CopyFileUtility_Internal
+{
+    internal static partial class BitUtility
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int GetFlagInt(int flagNum)
+        {
+<# foreach(var num in Enumerable.Range(0, 32)) { #>
+            if(flagNum == <#= num #> )
+            {
+                return 0b<#= CreateString("1",num).PadLeft(32,'0') #>;
+            }
+<# } #>
+            throw new OverflowException(flagNum.ToString());
+        }
+    }
+}

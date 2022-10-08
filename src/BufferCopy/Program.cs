@@ -27,11 +27,15 @@
             }
             if (3 < args.Length)
             {
-                option.RetryCount = int.Parse(args[3]);
+                option.PoolSize = int.Parse(args[3]);
             }
             if (4 < args.Length)
             {
-                option.ReportInterval = TimeSpan.FromSeconds(double.Parse(args[4]));
+                option.RetryCount = int.Parse(args[4]);
+            }
+            if (5 < args.Length)
+            {
+                option.ReportInterval = TimeSpan.FromSeconds(double.Parse(args[5]));
             }
 
             // Progress
@@ -64,17 +68,20 @@
                 beforeRead = x.ReadedSize;
                 beforeWrite = x.WritedSize;
             });
-            await CopyFileUtility.CopyAsync(srcFile, dstFile, option, progress).ConfigureAwait(false);
+            var a = new CancellationTokenSource();
+            //a.CancelAfter(1000);
+            await CopyFileUtility.CopyAsync(srcFile, dstFile, option, progress,a.Token).ConfigureAwait(false);
             return 0;
         }
 
         static void OutputHelp()
         {
-            Console.WriteLine($"BufferCopy.exe [SrcFile] [DstFile] [BufferSize(MiB)] [Retry] [ReportInterval(Sec)]");
+            Console.WriteLine($"BufferCopy.exe [SrcFile] [DstFile] [BufferSize(MiB)] [PoolSize] [Retry] [ReportInterval(Sec)]");
             Console.WriteLine();
             Console.WriteLine($"    SrcFile : Copy SrcFile");
             Console.WriteLine($"    DstFile : Copy DstFile");
             Console.WriteLine($"    BufferSize(MiB) : Single Read Buffer Size");
+            Console.WriteLine($"    PoolSize : Pool Size");
             Console.WriteLine($"    Retry : Maximum Retry For Read/Write Failure");
             Console.WriteLine($"    ReportInterval : Update Frequency");
         }

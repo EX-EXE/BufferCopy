@@ -3,4 +3,20 @@
 		<TargetFramework>net6.0</TargetFramework>
 		<RootNamespace>$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 	</PropertyGroup>
+	<ItemGroup>
+	  <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Compile Update="Internal\BItUtility_Flag.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>BitUtility_Flag.tt</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+	<ItemGroup>
+	  <None Update="Internal\BitUtility_Flag.tt">
+	    <Generator>TextTemplatingFileGenerator</Generator>
+	    <LastGenOutput>BItUtility_Flag.cs</LastGenOutput>
+	  </None>
+	</ItemGroup>
 </Project>
