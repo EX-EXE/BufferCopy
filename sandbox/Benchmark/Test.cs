@@ -56,10 +56,10 @@ namespace Benchmark
         [Arguments(256, 16)]
         [Arguments(1024, 16)]
         [Arguments(1024 * 1024, 16)]
-        [Arguments(16, 32)]
-        [Arguments(256, 32)]
-        [Arguments(1024, 32)]
-        [Arguments(1024 * 1024, 32)]
+        [Arguments(16, 30)]
+        [Arguments(256, 30)]
+        [Arguments(1024, 30)]
+        [Arguments(1024 * 1024, 30)]
         public async Task BufferCopy(int buffer,int pool)
         {
             if (System.IO.File.Exists(dstFile))
