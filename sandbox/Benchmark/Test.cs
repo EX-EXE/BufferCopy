@@ -1,10 +1,4 @@
 ﻿using BenchmarkDotNet.Attributes;
-using IOExtensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Benchmark
 {
@@ -12,7 +6,10 @@ namespace Benchmark
     //[ShortRunJob]
     public class Test
     {
-        private static readonly long testFileSize = 3L * 1024L * 1024L * 1024L;
+
+        [Params(1024L, 1024L * 1024L, 3L * 1024L * 1024L * 1024L)]
+        public long TestFileSize { get; set; }
+
         private string srcFile = string.Empty;
         private string dstFile = string.Empty;
 
@@ -36,7 +33,7 @@ namespace Benchmark
                 }
                 return path;
             }
-            srcFile = CreateFile(testFileSize);
+            srcFile = CreateFile(TestFileSize);
             dstFile = System.IO.Path.GetTempFileName();
         }
 
@@ -51,7 +48,19 @@ namespace Benchmark
         }
         
         [Benchmark]
-        public async Task BufferCopy()
+        [Arguments(16, 8)]
+        [Arguments(256, 8)]
+        [Arguments(1024, 8)]
+        [Arguments(1024 * 1024, 8)]
+        [Arguments(16, 16)]
+        [Arguments(256, 16)]
+        [Arguments(1024, 16)]
+        [Arguments(1024 * 1024, 16)]
+        [Arguments(16, 32)]
+        [Arguments(256, 32)]
+        [Arguments(1024, 32)]
+        [Arguments(1024 * 1024, 32)]
+        public async Task BufferCopy(int buffer,int pool)
         {
             if (System.IO.File.Exists(dstFile))
             {
@@ -60,6 +69,8 @@ namespace Benchmark
             var option = new CopyFileUtility.CopyFileOptions()
             {
                 OverrideExistFile = true,
+                BufferSize = buffer,
+                PoolSize = pool,
             };
             var progress = new Progress<CopyFileUtility.CopyFileProgress>(x =>
             {
@@ -69,15 +80,5 @@ namespace Benchmark
             });
             await CopyFileUtility.CopyAsync(srcFile, dstFile, option, progress);
         }
-
-        //[Benchmark]
-        //public async Task FileTransferManagerCopy()
-        //{
-        //    if (System.IO.File.Exists(dstFile))
-        //    {
-        //        System.IO.File.Delete(dstFile);
-        //    }
-        //    await FileTransferManager.CopyWithProgressAsync(srcFile, dstFile, (x) => {  }, true);
-        //}
     }
 }
