@@ -8,8 +8,8 @@ Copy file and reports read/write progress.
 ## Performance
 [Copy 1GiB File](https://github.com/EX-EXE/BufferCopy/actions/runs/3209872350)
 ### Windows
-|              Method |  buffer | pool |        Mean |       Error |      StdDev ||   Allocated |
-|-------------------- |-------- |----- |------------:|------------:|------------:||------------:|
+|              Method |  buffer | pool |        Mean |       Error |      StdDev |   Allocated |
+|-------------------- |-------- |----- |------------:|------------:|------------:|------------:|
 | **System.IO.File.Copy** |       **?** |    **?** |    **971.5 ms** |  **2,613.7 ms** |   **143.27 ms** |       **480 B** |
 |          **BufferCopy** |      **16** |    **8** | **43,766.2 ms** | **17,066.3 ms** |   **935.46 ms** | **156712160 B** |
 |          **BufferCopy** |      **16** |   **16** | **39,393.4 ms** | **65,583.1 ms** | **3,594.83 ms** | **156085760 B** |
