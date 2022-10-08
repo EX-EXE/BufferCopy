@@ -48,19 +48,7 @@ namespace Benchmark
         }
         
         [Benchmark]
-        [Arguments(16, 8)]
-        [Arguments(256, 8)]
-        [Arguments(1024, 8)]
-        [Arguments(1024 * 1024, 8)]
-        [Arguments(16, 16)]
-        [Arguments(256, 16)]
-        [Arguments(1024, 16)]
-        [Arguments(1024 * 1024, 16)]
-        [Arguments(16, 30)]
-        [Arguments(256, 30)]
-        [Arguments(1024, 30)]
-        [Arguments(1024 * 1024, 30)]
-        public async Task BufferCopy(int buffer,int pool)
+        public async Task BufferCopy()
         {
             if (System.IO.File.Exists(dstFile))
             {
@@ -69,8 +57,6 @@ namespace Benchmark
             var option = new CopyFileUtility.CopyFileOptions()
             {
                 OverrideExistFile = true,
-                BufferSize = buffer,
-                PoolSize = pool,
             };
             var progress = new Progress<CopyFileUtility.CopyFileProgress>(x =>
             {
