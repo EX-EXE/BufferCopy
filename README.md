@@ -1,9 +1,14 @@
 # BufferCopy / CopyFileUtility
-[![NuGet version](https://badge.fury.io/nu/CopyFileUtility.svg)](https://badge.fury.io/nu/CopyFileUtility)
 [![CodeQL](https://github.com/EX-EXE/BufferCopy/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/EX-EXE/BufferCopy/actions/workflows/codeql-analysis.yml)
 [![Push Build](https://github.com/EX-EXE/BufferCopy/actions/workflows/build.yml/badge.svg)](https://github.com/EX-EXE/BufferCopy/actions/workflows/build.yml)
 
 Copy file and reports read/write progress.
+
+## Project
+| Name | Type| Desc |
+|---|---|---|
+| CopyFileUtility | C# Library [![NuGet version](https://badge.fury.io/nu/CopyFileUtility.svg)](https://badge.fury.io/nu/CopyFileUtility) | Copy Process |
+| BufferCopy | Application | Using CopyFileUtility |
 
 ## Performance
 [Copy 1GiB File](https://github.com/EX-EXE/BufferCopy/actions/runs/3209872350)
