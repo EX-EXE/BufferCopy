@@ -7,7 +7,7 @@ namespace Benchmark
     public class Test
     {
 
-        public long TestFileSize { get; set; } = 4L * 1024L * 1024L * 1024L;
+        public long TestFileSize { get; set; } = 1L * 1024L * 1024L * 1024L;
 
         private string srcFile = string.Empty;
         private string dstFile = string.Empty;
