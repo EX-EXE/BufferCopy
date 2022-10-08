@@ -3,7 +3,7 @@
 namespace Benchmark
 {
     [MemoryDiagnoser]
-    //[ShortRunJob]
+    [ShortRunJob]
     public class Test
     {
 
