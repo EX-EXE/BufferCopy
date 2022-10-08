@@ -24,12 +24,24 @@ namespace CopyFileUtility_Internal
     internal static partial class BitUtility
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetFlagInt(int flagNum)
+        public static int GetFillInt(int flagNum)
         {
 <# foreach(var num in Enumerable.Range(0, 32)) { #>
             if(flagNum == <#= num #> )
             {
                 return 0b<#= CreateString("1",num).PadLeft(32,'0') #>;
+            }
+<# } #>
+            throw new OverflowException(flagNum.ToString());
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int GetFlagInt(int flagNum)
+        {
+<# foreach(var num in Enumerable.Range(0, 31)) { #>
+            if(flagNum == <#= num #> )
+            {
+                return 0b<#= CreateString("0",32 - num -1 ) + "1" + CreateString("0",num) #>;
             }
 <# } #>
             throw new OverflowException(flagNum.ToString());

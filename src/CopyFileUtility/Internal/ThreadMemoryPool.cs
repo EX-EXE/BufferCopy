@@ -10,10 +10,10 @@ namespace CopyFileUtility_Internal
 
     internal class ThreadMemoryPool
     {
-        private int pos;
+        private volatile int pos;
         private int max;
 
-        private volatile int unusedFlag;
+        private int unusedFlag;
         private int bufferSize;
         private Memory<byte> bufferData;
 
@@ -21,7 +21,7 @@ namespace CopyFileUtility_Internal
         {
             pos = 0;
             max = poolSize;
-            unusedFlag = BitUtility.GetFlagInt(poolSize);
+            unusedFlag = BitUtility.GetFillInt(poolSize);
             this.bufferSize = bufferSize;
             bufferData = new Memory<byte>(new byte[bufferSize * poolSize]);
         }
@@ -37,15 +37,19 @@ namespace CopyFileUtility_Internal
 
                 if (((unusedFlag >> pos) & 1) == 1)
                 {
-                    unusedFlag &= ~(1 << pos);
-                    return (bufferData.Slice(bufferSize * pos, bufferSize), pos++);
+                    Interlocked.Add(ref unusedFlag, -BitUtility.GetFlagInt(pos));
+                    var dataBuff = bufferData.Slice(bufferSize * pos, bufferSize);
+                    var dataPos = pos;
+                    ++pos;
+                    return (dataBuff, dataPos);
                 }
                 Thread.Yield();
             }
         }
+
         public void Return(int bitPos)
         {
-            unusedFlag |= (1 << bitPos);
+            Interlocked.Add(ref unusedFlag, BitUtility.GetFlagInt(bitPos));
         }
     }
 }
