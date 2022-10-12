@@ -13,10 +13,7 @@ public partial class CopyFileUtility
 
         public bool OverrideExistFile { get; set; } = false;
 
-        public int RetryCount { get; set; } = 3;
-        public TimeSpan RetryInterval { get; set; } = TimeSpan.FromMilliseconds(100);
-
-        public TimeSpan ReportInterval { get; set; } = TimeSpan.FromMilliseconds(100);
+        public TimeSpan ReportInterval { get; set; } = TimeSpan.FromMilliseconds(500);
 
     }
 }

@@ -1,6 +1,8 @@
 ﻿using CopyFileUtility_Internal;
+using Microsoft.VisualBasic.FileIO;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Channels;
@@ -60,27 +62,34 @@ public partial class CopyFileUtility
             }
         }, linkedCancelToken);
 
-        try
+        // Memory
+        var bufferSize = srcFileSize < option.BufferSize ? srcFileSize : option.BufferSize;
+        var memoryPool = new ThreadMemoryPool((int)bufferSize, option.PoolSize);
+
+        // Channel
+        var channelOption = new BoundedChannelOptions(option.PoolSize)
         {
-            // Memory
-            var bufferSize = srcFileSize < option.BufferSize ? srcFileSize : option.BufferSize;
-            var memoryPool = new ThreadMemoryPool((int)bufferSize,option.PoolSize);
+            FullMode = BoundedChannelFullMode.Wait,
+            SingleReader = true,
+            SingleWriter = true,
+        };
+        var writeChannel = Channel.CreateBounded<(Memory<byte>, int)>(channelOption);
 
-            // Channel
-            var channelOption = new BoundedChannelOptions(option.PoolSize)
+        // WriteTask
+        var writeTask = Task.Run(async () =>
+        {
+            try
             {
-                FullMode = BoundedChannelFullMode.Wait,
-                SingleReader = true,
-                SingleWriter = true,
-            };
-            var writeChannel = Channel.CreateBounded<(Memory<byte>, int)>(channelOption);
+                // CreateDirectory
+                var dstParentDir = System.IO.Path.GetDirectoryName(dst);
+                if (!string.IsNullOrEmpty(dstParentDir) && !System.IO.Directory.Exists(dstParentDir))
+                {
+                    System.IO.Directory.CreateDirectory(dstParentDir);
+                }
 
-            // WriteTask
-            var writeTask = Task.Run(async () =>
-            {
+                // WriteFile
                 using var writeStream = new FileStream(dst, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
                 writeStream.SetLength(srcFileSize);
-                // Write
                 while (await writeChannel.Reader.WaitToReadAsync(linkedCancelToken).ConfigureAwait(false))
                 {
                     await foreach (var (memoryData, bitNum) in writeChannel.Reader.ReadAllAsync(linkedCancelToken).ConfigureAwait(false))
@@ -88,8 +97,8 @@ public partial class CopyFileUtility
                         linkedCancelToken.ThrowIfCancellationRequested();
                         try
                         {
-                            var writeSize = await WriteAsync(writeStream, memoryData, option, default).ConfigureAwait(false);
-                            reportInfo.AddWritedSize(writeSize);
+                            await writeStream.WriteAsync(memoryData, cancellationToken).ConfigureAwait(false);
+                            reportInfo.AddWritedSize(memoryData.Length);
                         }
                         finally
                         {
@@ -97,33 +106,69 @@ public partial class CopyFileUtility
                         }
                     }
                 }
-            }, linkedCancelToken);
-
-            // Read
-            using var readStream = new FileStream(src, FileMode.Open, FileAccess.Read, FileShare.Read);
-            while (readStream.Position != readStream.Length)
-            {
-                var (memoryData, bitNum) = memoryPool.Rent();
-                var readSize = await ReadAsync(readStream, memoryData, option, linkedCancelToken).ConfigureAwait(false);
-                reportInfo.AddReadedSize(readSize);
-                await writeChannel.Writer.WriteAsync((memoryData.Slice(0, readSize), bitNum), linkedCancelToken).ConfigureAwait(false);
             }
-            writeChannel.Writer.Complete();
-
-            // WriteWait
-            await writeTask.ConfigureAwait(false);
-            linkedCancelToken.ThrowIfCancellationRequested();
-        }
-        finally
-        {
-            if (linkedCancelToken.IsCancellationRequested)
+            catch (Exception ex)
             {
+                // Delete WritingFile
                 if (System.IO.File.Exists(dst))
                 {
                     System.IO.File.Delete(dst);
                 }
+                linkedCancelTokenSource.Cancel();
+
+                // Read Failed
+                if (ex is OperationCanceledException canceledException &&
+                    canceledException.CancellationToken == linkedCancelToken)
+                {
+                    return;
+                }
+                throw;
             }
-            linkedCancelTokenSource.Cancel();
+        }, linkedCancelToken);
+
+        // ReadTask
+        var readTask = Task.Run(async () =>
+        {
+            try
+            {
+                using var readStream = new FileStream(src, FileMode.Open, FileAccess.Read, FileShare.Read);
+                while (readStream.Position != readStream.Length)
+                {
+                    var (memoryData, bitNum) = memoryPool.Rent();
+                    var readSize = await readStream.ReadAsync(memoryData, cancellationToken).ConfigureAwait(false);
+                    reportInfo.AddReadedSize(readSize);
+                    await writeChannel.Writer.WriteAsync((memoryData.Slice(0, readSize), bitNum), linkedCancelToken).ConfigureAwait(false);
+                }
+                writeChannel.Writer.Complete();
+            }
+            catch (Exception ex)
+            {
+                linkedCancelTokenSource.Cancel();
+
+                // Write Failed
+                if (ex is OperationCanceledException canceledException &&
+                    canceledException.CancellationToken == linkedCancelToken)
+                {
+                    return;
+                }
+                throw;
+            }
+
+        }, linkedCancelToken);
+
+
+        // Wait Tasks
+        try
+        {
+            await Task.WhenAll(readTask, writeTask).ConfigureAwait(false);
+        }
+        finally
+        {
+            if(!linkedCancelTokenSource.IsCancellationRequested)
+            {
+                linkedCancelTokenSource.Cancel();
+            }
+            linkedCancelTokenSource.Dispose();
         }
 
         // Report Wait
@@ -134,88 +179,6 @@ public partial class CopyFileUtility
         catch (TaskCanceledException)
         {
             // Through
-        }
-    }
-
-    private static async ValueTask<int> WriteAsync(
-        Stream stream,
-        Memory<byte> data,
-        CopyFileOptions option,
-        CancellationToken cancellationToken)
-    {
-        var currentRetryCount = 0;
-        while (true)
-        {
-            try
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await stream.WriteAsync(data, cancellationToken).ConfigureAwait(false);
-                return data.Length;
-            }
-            catch (Exception ex)
-            {
-                // Canceled
-                if (ex is OperationCanceledException)
-                {
-                    throw;
-                }
-
-                if (currentRetryCount < option.RetryCount)
-                {
-                    // Retry
-                    ++currentRetryCount;
-                    await Task.Delay(option.RetryInterval, cancellationToken).ConfigureAwait(false);
-                    continue;
-                }
-                else
-                {
-                    // Rethrow
-                    throw;
-                }
-            }
-        }
-    }
-
-    private static async ValueTask<int> ReadAsync(
-        Stream stream,
-        Memory<byte> data,
-        CopyFileOptions option,
-        CancellationToken cancellationToken)
-    {
-        var currentRetryCount = 0;
-        var startPosition = stream.Position;
-        while (true)
-        {
-            try
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                return await stream.ReadAsync(data, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                // Canceled
-                if (ex is OperationCanceledException)
-                {
-                    throw;
-                }
-
-                if (currentRetryCount < option.RetryCount)
-                {
-                    // Retry
-                    ++currentRetryCount;
-                    await Task.Delay(option.RetryInterval, cancellationToken).ConfigureAwait(false);
-                    if (stream.Position != startPosition)
-                    {
-                        stream.Position = startPosition;
-                    }
-                    continue;
-                }
-                else
-                {
-                    // Rethrow
-                    throw;
-                }
-            }
         }
     }
 }
