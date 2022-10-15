@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 public partial class CopyFileUtility
 {
-
     public static ValueTask CopyFileAsync(
         string src,
         string dst,
