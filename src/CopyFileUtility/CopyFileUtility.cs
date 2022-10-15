@@ -171,6 +171,23 @@ public partial class CopyFileUtility
             linkedCancelTokenSource.Dispose();
         }
 
+        // FileInfo
+        var srcFileInfo = new System.IO.FileInfo(src);
+        var dstFileInfo = new System.IO.FileInfo(dst);
+        dstFileInfo.Attributes |= srcFileInfo.Attributes & option.CopyAttributes;
+        if (option.CopyDates.HasFlag(FileDates.Create))
+        {
+            dstFileInfo.CreationTimeUtc = srcFileInfo.CreationTimeUtc;
+        }
+        if (option.CopyDates.HasFlag(FileDates.LastAccess))
+        {
+            dstFileInfo.LastAccessTimeUtc = srcFileInfo.LastAccessTimeUtc;
+        }
+        if (option.CopyDates.HasFlag(FileDates.LastWrite))
+        {
+            dstFileInfo.LastWriteTimeUtc = srcFileInfo.LastWriteTimeUtc;
+        }
+
         // Report Wait
         try
         {
