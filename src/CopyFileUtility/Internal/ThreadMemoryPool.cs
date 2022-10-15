@@ -13,6 +13,7 @@ namespace CopyFileUtility_Internal
         private volatile int pos;
         private int max;
 
+        private int initFlag;
         private int unusedFlag;
         private int bufferSize;
         private Memory<byte> bufferData;
@@ -21,9 +22,10 @@ namespace CopyFileUtility_Internal
         {
             pos = 0;
             max = poolSize;
-            unusedFlag = BitUtility.GetFillInt(poolSize);
+            initFlag = BitUtility.GetFillInt(poolSize);
             this.bufferSize = bufferSize;
             bufferData = new Memory<byte>(new byte[bufferSize * poolSize]);
+            Reset();
         }
 
         public (Memory<byte>,int) Rent()
@@ -50,6 +52,11 @@ namespace CopyFileUtility_Internal
         public void Return(int bitPos)
         {
             Interlocked.Add(ref unusedFlag, BitUtility.GetFlagInt(bitPos));
+        }
+
+        public void Reset()
+        {
+            unusedFlag = initFlag;
         }
     }
 }
