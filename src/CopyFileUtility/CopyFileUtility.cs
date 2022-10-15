@@ -10,15 +10,33 @@ using System.Threading.Tasks;
 
 public partial class CopyFileUtility
 {
-    public static async ValueTask CopyAsync(
+
+    public static ValueTask CopyAsync(
         string src,
         string dst,
         CopyFileOptions option,
         IProgress<CopyFileProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        // Check
         cancellationToken.ThrowIfCancellationRequested();
+        // Memory
+        var srcFileSize = new System.IO.FileInfo(src.ToString()).Length;
+        var bufferSize = srcFileSize < option.BufferSize ? srcFileSize : option.BufferSize;
+        var memoryPool = new ThreadMemoryPool((int)bufferSize, option.PoolSize);
+        // Copy
+        return CopyAsync(memoryPool, src, dst, option, progress, cancellationToken);
+    }
+
+    private static async ValueTask CopyAsync(
+        ThreadMemoryPool memoryPool,
+         string src,
+         string dst,
+         CopyFileOptions option,
+         IProgress<CopyFileProgress>? progress = null,
+         CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        // Check
         if (!System.IO.File.Exists(src))
         {
             throw new System.IO.FileNotFoundException($"NotFound SrcFile : {src}");
@@ -32,9 +50,6 @@ public partial class CopyFileUtility
             System.IO.File.SetAttributes(dst, FileAttributes.Normal);
             System.IO.File.Delete(dst);
         }
-        // File
-        var srcFileSize = new System.IO.FileInfo(src.ToString()).Length;
-
         // Token
         using var linkedCancelTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var linkedCancelToken = linkedCancelTokenSource.Token;
@@ -43,7 +58,7 @@ public partial class CopyFileUtility
         var reportInfo = new CopyFileProgress()
         {
             StartDate = DateTime.Now,
-            FileSize = srcFileSize
+            FileSize = new System.IO.FileInfo(src.ToString()).Length
         };
         var progressTask = Task.Run(async () =>
         {
@@ -61,10 +76,6 @@ public partial class CopyFileUtility
                 await Task.Delay(option.ReportInterval, linkedCancelToken).ConfigureAwait(false);
             }
         }, linkedCancelToken);
-
-        // Memory
-        var bufferSize = srcFileSize < option.BufferSize ? srcFileSize : option.BufferSize;
-        var memoryPool = new ThreadMemoryPool((int)bufferSize, option.PoolSize);
 
         // Channel
         var channelOption = new BoundedChannelOptions(option.PoolSize)
@@ -89,7 +100,7 @@ public partial class CopyFileUtility
 
                 // WriteFile
                 using var writeStream = new FileStream(dst, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
-                writeStream.SetLength(srcFileSize);
+                writeStream.SetLength(reportInfo.FileSize);
                 while (await writeChannel.Reader.WaitToReadAsync(linkedCancelToken).ConfigureAwait(false))
                 {
                     await foreach (var (memoryData, bitNum) in writeChannel.Reader.ReadAllAsync(linkedCancelToken).ConfigureAwait(false))
