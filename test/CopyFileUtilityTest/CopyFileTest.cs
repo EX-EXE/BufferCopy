@@ -85,7 +85,7 @@ namespace CopyFileUtilityTest
             {
                 OverrideExistFile = true,
             };
-            await CopyFileUtility.CopyAsync(srcFile, dstFile, option, null, default).ConfigureAwait(false);
+            await CopyFileUtility.CopyFileAsync(srcFile, dstFile, option, null, default).ConfigureAwait(false);
             Assert.True(CompareFile(srcFile, dstFile));
 
             System.IO.File.Delete(dstFile);
@@ -104,7 +104,7 @@ namespace CopyFileUtilityTest
             foreach (var fileSize in new[] { 1024, 1024 * 1024, 1024 * 2 })
             {
                 var srcFile = CreateFile(fileSize);
-                await CopyFileUtility.CopyAsync(srcFile, dstFile, option, null, default).ConfigureAwait(false);
+                await CopyFileUtility.CopyFileAsync(srcFile, dstFile, option, null, default).ConfigureAwait(false);
                 Assert.True(CompareFile(srcFile, dstFile));
                 System.IO.File.Delete(srcFile);
             }

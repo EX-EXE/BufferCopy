@@ -77,7 +77,7 @@ namespace Benchmark
                 var readProgress = x.FileSize <= 0 ? 1.0 : (double)x.ReadedSize / (double)x.FileSize;
                 var writeProgress = x.FileSize <= 0 ? 1.0 : (double)x.WritedSize / (double)x.FileSize;
             });
-            await CopyFileUtility.CopyAsync(srcFile, dstFile, option, progress);
+            await CopyFileUtility.CopyFileAsync(srcFile, dstFile, option, progress);
         }
     }
 }

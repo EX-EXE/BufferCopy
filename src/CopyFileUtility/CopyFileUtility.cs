@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 public partial class CopyFileUtility
 {
 
-    public static ValueTask CopyAsync(
+    public static ValueTask CopyFileAsync(
         string src,
         string dst,
         CopyFileOptions option,
@@ -24,10 +24,10 @@ public partial class CopyFileUtility
         var bufferSize = srcFileSize < option.BufferSize ? srcFileSize : option.BufferSize;
         var memoryPool = new ThreadMemoryPool((int)bufferSize, option.PoolSize);
         // Copy
-        return CopyAsync(memoryPool, src, dst, option, progress, cancellationToken);
+        return CopyFileAsync(memoryPool, src, dst, option, progress, cancellationToken);
     }
 
-    private static async ValueTask CopyAsync(
+    private static async ValueTask CopyFileAsync(
         ThreadMemoryPool memoryPool,
          string src,
          string dst,

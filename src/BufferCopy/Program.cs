@@ -64,7 +64,7 @@
                 beforeRead = x.ReadedSize;
                 beforeWrite = x.WritedSize;
             });
-            await CopyFileUtility.CopyAsync(srcFile, dstFile, option, progress, default).ConfigureAwait(false);
+            await CopyFileUtility.CopyFileAsync(srcFile, dstFile, option, progress, default).ConfigureAwait(false);
             return 0;
         }
 
