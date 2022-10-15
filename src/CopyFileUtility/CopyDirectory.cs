@@ -194,6 +194,7 @@ public partial class CopyFileUtility
             {
                 fileInfo.OccurredException = ex;
                 fileInfo.CopyStatus = CopyStatus.Fail;
+                progress?.Report(report);
             }
         }
         report.ResetRunning();

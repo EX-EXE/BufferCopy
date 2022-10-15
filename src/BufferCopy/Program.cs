@@ -142,20 +142,12 @@ namespace BufferCopy
                 var fileStatus = string.Empty;
                 if (x.RunningFile != null)
                 {
-                    if(x.RunningFile.OccurredException == null)
-                    {
-                        // Normal
-                        var filePercent = x.WritedSize == 0 ? 0.0 : (double)x.WritedSize / (double)x.FileSize;
-                        currentPercent += oncePercent * filePercent;
-                        fileStatus = $"{System.IO.Path.GetFileName(x.RunningFile.Src)}({ConvertPercentStr(filePercent)})";
-                    }
-                    else
-                    {
-                        // Error
-                        Console.Error.WriteLine(x.RunningFile.OccurredException.ToString());
-                    }
+                    // Normal
+                    var filePercent = x.WritedSize == 0 ? 0.0 : (double)x.WritedSize / (double)x.FileSize;
+                    currentPercent += oncePercent * filePercent;
+                    fileStatus = $"{System.IO.Path.GetFileName(x.RunningFile.Src)}({ConvertPercentStr(filePercent)})";
                 }
-                Console.WriteLine($"{ConvertPercentStr(currentPercent)} | S:{successCount.ToString().PadLeft(digit)}+F:{failCount.ToString().PadLeft(digit)}/{allCount} | {fileStatus}");
+                Console.WriteLine($"{ConvertPercentStr(currentPercent)} | Success:{successCount.ToString().PadLeft(digit)} | Fail:{failCount.ToString().PadLeft(digit)} | Total:{allCount} | {fileStatus}");
             });
             await CopyFileUtility.CopyDirectoryAsync(src, dst, SearchOption.AllDirectories, options, progress, default).ConfigureAwait(false);
             return 0;
