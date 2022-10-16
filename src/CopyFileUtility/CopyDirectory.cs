@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -27,24 +28,28 @@ public partial class CopyFileUtility
 
     public class CopyDirectoryProgress
     {
+        public static readonly int InitIndex = -1;
+        public static readonly int EndIndex = -2;
+
         public CopyFileInfo[] Files { get; set; } = Array.Empty<CopyFileInfo>();
-        public CopyFileInfo? RunningFile { get; set; } = null;
+        public int RunningIndex { get; set; } = InitIndex;
         public long ReadedSize { get; set; } = -1;
         public long WritedSize { get; set; } = -1;
+        public CopyFileInfo? RunningFile => RunningIndex < 0 ? null : Files[RunningIndex];
         public long FileSize => (RunningFile == null ? -1 : RunningFile.FileSize);
 
-        internal void ResetRunning()
+        internal void SetRunningFile(int index)
         {
-            RunningFile = null;
-            ReadedSize = -1;
-            WritedSize = -1;
-        }
-        internal void SetRunningFile(CopyFileInfo info)
-        {
-            RunningFile = info;
+            RunningIndex = index;
             ReadedSize = 0;
             WritedSize = 0;
-            info.CopyStatus = CopyStatus.Running;
+            Files[index].CopyStatus = CopyStatus.Running;
+        }
+        internal void EndRunning()
+        {
+            RunningIndex = EndIndex;
+            ReadedSize = -1;
+            WritedSize = -1;
         }
     }
 
@@ -181,11 +186,11 @@ public partial class CopyFileUtility
             report.WritedSize = x.WritedSize;
             progress?.Report(report);
         });
-        foreach (var fileInfo in copyFiles)
+        foreach (var (index,fileInfo) in copyFiles.Select((x, i) => (i, x)))
         {
             try
             {
-                report.SetRunningFile(fileInfo);
+                report.SetRunningFile(index);
                 progress?.Report(report);
                 await CopyFileAsync(memoryPool, fileInfo.Src, fileInfo.Dst, fileOption, copyFileProgress, cancellationToken);
                 fileInfo.CopyStatus = CopyStatus.Success;
@@ -197,7 +202,7 @@ public partial class CopyFileUtility
                 progress?.Report(report);
             }
         }
-        report.ResetRunning();
+        report.EndRunning();
         progress?.Report(report);
         return copyFiles.ToArray();
     }

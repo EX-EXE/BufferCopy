@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Numerics;
+using System.Reflection;
 using System.Security.Cryptography;
 
 namespace BufferCopy
@@ -24,7 +26,7 @@ namespace BufferCopy
             var options = ConvertOptions(args.AsSpan(3));
             if (args[0].Contains("file", StringComparison.OrdinalIgnoreCase))
             {
-                return CopyFile(src,dst,options);
+                return CopyFile(src, dst, options);
             }
             else if (args[0].Contains("dir", StringComparison.OrdinalIgnoreCase))
             {
@@ -62,7 +64,7 @@ namespace BufferCopy
             {
                 OverrideExistFile = true,
             };
-            if(!args.IsEmpty)
+            if (!args.IsEmpty)
             {
                 var arg = args[0];
                 args = args.Slice(1);
@@ -128,29 +130,98 @@ namespace BufferCopy
         static async Task<int> CopyDirectory(string src, string dst, CopyFileUtility.CopyFileOptions options)
         {
             // Progress
+            var init = false;
+            var totalSize = new BigInteger();
+            var endFileSize = new BigInteger();
+            var nextIndex = 0;
+            var successCount = 0;
+            var failCount = 0;
+
             var progress = new Progress<CopyFileUtility.CopyDirectoryProgress>(x =>
             {
-                var successCount = x.Files.Where(x => x.CopyStatus == CopyFileUtility.CopyStatus.Success).Count();
-                var failCount = x.Files.Where(x => x.CopyStatus == CopyFileUtility.CopyStatus.Fail).Count();
-                var endStatusCount = successCount + failCount;
+                if (!init)
+                {
+                    init = true;
+                    // Calc TotalSize
+                    foreach (var fileInfo in x.Files)
+                    {
+                        totalSize += fileInfo.FileSize;
+                    }
+                }
 
-                var allCount = x.Files.Length;
-                var digit = (allCount == 0) ? 1 : ((int)Math.Log10(allCount) + 1);
-                var oncePercent = 1.0 / allCount;
-                var currentPercent = oncePercent * endStatusCount;
+                // Add End FileSize/FileCount
+                var endIndex = x.RunningIndex != CopyFileUtility.CopyDirectoryProgress.EndIndex ? x.RunningIndex : x.Files.Length;
+                for (var index = nextIndex; index < endIndex; ++index)
+                {
+                    nextIndex = index + 1;
+                    var fileInfo = x.Files[index];
+                    endFileSize += fileInfo.FileSize;
+                    switch (fileInfo.CopyStatus)
+                    {
+                        case CopyFileUtility.CopyStatus.Success:
+                            ++successCount;
+                            break;
+                        case CopyFileUtility.CopyStatus.Fail:
+                            ++failCount;
+                            break;
+                    }
+                }
+                var allFileCount = x.Files.Length;
+                var endFileCount = successCount + failCount;
+                var digitCount = (allFileCount == 0) ? 1 : ((int)Math.Log10(allFileCount) + 1);
 
+                // Add Running WriteSize
+                var currentFileSize = endFileSize;
                 var fileStatus = string.Empty;
                 if (x.RunningFile != null)
                 {
-                    // Normal
-                    var filePercent = x.WritedSize == 0 ? 0.0 : (double)x.WritedSize / (double)x.FileSize;
-                    currentPercent += oncePercent * filePercent;
+                    currentFileSize += x.WritedSize;
+                    var filePercent = x.FileSize == 0 ? 0.0 : (double)x.WritedSize / (double)x.FileSize;
                     fileStatus = $"{System.IO.Path.GetFileName(x.RunningFile.Src)}({ConvertPercentStr(filePercent)})";
                 }
-                Console.WriteLine($"{ConvertPercentStr(currentPercent)} | Success:{successCount.ToString().PadLeft(digit)} | Fail:{failCount.ToString().PadLeft(digit)} | Total:{allCount} | {fileStatus}");
+
+                // Output
+                var fileSizePercent = CalcPercent(in currentFileSize, in totalSize);
+                Console.WriteLine($"{ConvertPercentStr(fileSizePercent)} | Success:{successCount.ToString().PadLeft(digitCount)} | Fail:{failCount.ToString().PadLeft(digitCount)} | Total:{allFileCount} | {fileStatus}");
             });
             await CopyFileUtility.CopyDirectoryAsync(src, dst, SearchOption.AllDirectories, options, progress, default).ConfigureAwait(false);
             return 0;
+        }
+
+        static double CalcPercent(in BigInteger numerator, in BigInteger denominator)
+        {
+            if (numerator == denominator)
+            {
+                return 1.0;
+            }
+            if (numerator > denominator)
+            {
+                throw new ArgumentException("Not numerator > denominator");
+            }
+
+            // Adjusted to double(Max:0.99...)
+            byte[] CreateLong(byte[] bytes, int copyNum)
+            {
+                var result = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 };
+                copyNum = Math.Max(copyNum, 0);
+                Array.Copy(bytes, 0, result, 8 - copyNum, copyNum);
+                return result.Reverse().ToArray();
+            }
+            var aBytes = numerator.ToByteArray(true, true);
+            var bBytes = denominator.ToByteArray(true, true);
+
+            var maxByteCount = Math.Max(aBytes.Length, bBytes.Length);
+            var aByteCount = aBytes.Length;
+            var bByteCount = bBytes.Length;
+            if (8 < maxByteCount)
+            {
+                aByteCount += 8 - maxByteCount;
+                bByteCount += 8 - maxByteCount;
+            }
+            var aLong = BitConverter.ToUInt64(CreateLong(aBytes, aByteCount));
+            var bLong = BitConverter.ToUInt64(CreateLong(bBytes, bByteCount));
+            var calc = Convert.ToDouble(aLong) / Convert.ToDouble(bLong);
+            return calc < 1.0 ? calc : 0.99999999999999989d;
         }
 
         static string ConvertPercentStr(double value)
