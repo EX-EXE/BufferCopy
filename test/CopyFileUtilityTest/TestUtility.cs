@@ -119,5 +119,19 @@ namespace CopyFileUtilityTest
             }
             return true;
         }
+
+        internal static void DeleteFiles(params IEnumerable<string>[] files)
+        {
+            foreach (var fileEnumerable in files)
+            {
+                foreach (var file in fileEnumerable)
+                {
+                    if (System.IO.File.Exists(file))
+                    {
+                        System.IO.File.Delete(file);
+                    }
+                }
+            }
+        }
     }
 }

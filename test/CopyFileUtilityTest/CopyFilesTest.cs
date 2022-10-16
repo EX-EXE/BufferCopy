@@ -40,6 +40,7 @@ namespace CopyFileUtilityTest
 
             // Check Files
             TestUtility.CompareFiles(srcFiles, dstList.ToArray());
+            TestUtility.DeleteFiles(srcFiles, dstList);
         }
 
     }

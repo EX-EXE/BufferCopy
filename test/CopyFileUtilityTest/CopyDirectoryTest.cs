@@ -51,7 +51,7 @@ namespace CopyFileUtilityTest
         public async Task CopyDirectoryChangeFilePath()
         {
             // Create SrcFiles
-            var (srcRootDir, srcFiles) = TestUtility.CreateFiles(16, 16, 1024 * 1024 * 1024 * 1, 1024L * 1024L * 1024L * 4L, output);
+            var (srcRootDir, srcFiles) = TestUtility.CreateFiles(128, 16, 1024, 1024 * 1024, output);
             var dstRootDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.IO.Path.GetRandomFileName());
 
             // Copy Files
@@ -69,6 +69,7 @@ namespace CopyFileUtilityTest
             // Check Files
             CheckSrcFiles(srcFiles, dstFileInfos);
             TestUtility.CompareFiles(dstFileInfos.Select(x => x.Src).ToArray(), dstFileInfos.Select(x => x.Dst).ToArray());
+            TestUtility.DeleteFiles(srcFiles, dstFileInfos.Select(x => x.Dst));
         }
 
         [Fact]
@@ -91,6 +92,7 @@ namespace CopyFileUtilityTest
             var srcFilterFiles = System.IO.Directory.GetFiles(srcRootDir, singleFiles, SearchOption.AllDirectories);
             CheckSrcFiles(srcFilterFiles, dstFileInfos);
             TestUtility.CompareFiles(dstFileInfos.Select(x => x.Src).ToArray(), dstFileInfos.Select(x => x.Dst).ToArray());
+            TestUtility.DeleteFiles(srcFiles, dstFileInfos.Select(x => x.Dst));
         }
 
         [Fact]
@@ -115,6 +117,7 @@ namespace CopyFileUtilityTest
                 .ToArray();
             CheckSrcFiles(srcFilterFiles, dstFileInfos);
             TestUtility.CompareFiles(dstFileInfos.Select(x => x.Src).ToArray(), dstFileInfos.Select(x => x.Dst).ToArray());
+            TestUtility.DeleteFiles(srcFiles, dstFileInfos.Select(x => x.Dst));
         }
     }
 }
