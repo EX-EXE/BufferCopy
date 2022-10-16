@@ -39,7 +39,7 @@ namespace CopyFileUtilityTest
             {
                 OverrideExistFile = true,
             };
-            var dstFileInfos = await CopyFileUtility.CopyDirectoryAsync(srcRootDir, dstRootDir, SearchOption.AllDirectories, option, null, default);
+            var dstFileInfos = await CopyFileUtility.CopyDirectoryAsync(srcRootDir, dstRootDir, SearchOption.AllDirectories, option, false, null, default);
 
             // Check Files
             CheckSrcFiles(srcFiles, dstFileInfos);
@@ -51,7 +51,7 @@ namespace CopyFileUtilityTest
         public async Task CopyDirectoryChangeFilePath()
         {
             // Create SrcFiles
-            var (srcRootDir, srcFiles) = TestUtility.CreateFiles(128, 16, 1024, 1024 * 1024, output);
+            var (srcRootDir, srcFiles) = TestUtility.CreateFiles(16, 16, 1024 * 1024 * 1024 * 1, 1024L * 1024L * 1024L * 4L, output);
             var dstRootDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.IO.Path.GetRandomFileName());
 
             // Copy Files
@@ -63,8 +63,8 @@ namespace CopyFileUtilityTest
             var dstFileInfos = await CopyFileUtility.CopyDirectoryAsync(srcRootDir, dstRootDir,
                 (string src, string dst, string _) =>
                 {
-                    return System.IO.Path.Combine(dstRootDir, (index++).ToString());
-                }, SearchOption.AllDirectories, option, null, default);
+                    return System.IO.Path.Combine(dstRootDir, (index++).ToString().PadLeft(3, '0') + ".dat");
+                }, SearchOption.AllDirectories, option, false, null, default);
 
             // Check Files
             CheckSrcFiles(srcFiles, dstFileInfos);
@@ -85,7 +85,7 @@ namespace CopyFileUtilityTest
             {
                 OverrideExistFile = true,
             };
-            var dstFileInfos = await CopyFileUtility.CopyDirectoryAsync(srcRootDir, dstRootDir, Regex.Escape(singleFiles), null, null, SearchOption.AllDirectories, option, null, default);
+            var dstFileInfos = await CopyFileUtility.CopyDirectoryAsync(srcRootDir, dstRootDir, Regex.Escape(singleFiles), null, null, SearchOption.AllDirectories, option, false, null, default);
 
             // Check Files
             var srcFilterFiles = System.IO.Directory.GetFiles(srcRootDir, singleFiles, SearchOption.AllDirectories);
@@ -107,7 +107,7 @@ namespace CopyFileUtilityTest
             {
                 OverrideExistFile = true,
             };
-            var dstFileInfos = await CopyFileUtility.CopyDirectoryAsync(srcRootDir, dstRootDir, null, Regex.Escape(singleFileName), null, SearchOption.AllDirectories, option, null, default);
+            var dstFileInfos = await CopyFileUtility.CopyDirectoryAsync(srcRootDir, dstRootDir, null, Regex.Escape(singleFileName), null, SearchOption.AllDirectories, option, false, null, default);
 
             // Check Files
             var srcFilterFiles = System.IO.Directory.GetFiles(srcRootDir, "*", SearchOption.AllDirectories)
