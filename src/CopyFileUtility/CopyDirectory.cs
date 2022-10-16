@@ -48,7 +48,7 @@ public partial class CopyFileUtility
         }
     }
 
-    public static ValueTask CopyDirectoryAsync(
+    public static ValueTask<CopyFileInfo[]> CopyDirectoryAsync(
         string src,
         string dst,
         System.IO.SearchOption searchOption,
@@ -68,7 +68,7 @@ public partial class CopyFileUtility
             cancellationToken);
     }
 
-    public static ValueTask CopyDirectoryAsync(
+    public static ValueTask<CopyFileInfo[]> CopyDirectoryAsync(
         string src,
         string dst,
         Func<string, string, string, string> changePathFunction,
@@ -89,12 +89,12 @@ public partial class CopyFileUtility
             cancellationToken);
     }
 
-    public static ValueTask CopyDirectoryAsync(
+    public static ValueTask<CopyFileInfo[]> CopyDirectoryAsync(
         string src,
         string dst,
-        string includeSrcPathRegex,
-        string excludeSrcPathRegex,
-        Func<string, string, string, string> changePathFunction,
+        string? includeSrcPathRegex,
+        string? excludeSrcPathRegex,
+        Func<string, string, string, string>? changePathFunction,
         System.IO.SearchOption searchOption,
         CopyFileOptions fileOption,
         IProgress<CopyDirectoryProgress>? progress = null,
@@ -102,9 +102,9 @@ public partial class CopyFileUtility
     {
         return CopyDirectoryAsync(
             src, 
-            dst, 
-            new Regex(includeSrcPathRegex,RegexOptions.Compiled),
-            new Regex(excludeSrcPathRegex, RegexOptions.Compiled),
+            dst,
+            string.IsNullOrEmpty(includeSrcPathRegex) ? null: new Regex(includeSrcPathRegex, RegexOptions.Compiled),
+            string.IsNullOrEmpty(excludeSrcPathRegex) ? null : new Regex(excludeSrcPathRegex, RegexOptions.Compiled),
             changePathFunction,
             searchOption,
             fileOption,
@@ -112,7 +112,7 @@ public partial class CopyFileUtility
             cancellationToken);    
     }
 
-    public static async ValueTask CopyDirectoryAsync(
+    public static async ValueTask<CopyFileInfo[]> CopyDirectoryAsync(
         string src,
         string dst,
         Regex? includeSrcPathRegex,
@@ -199,6 +199,6 @@ public partial class CopyFileUtility
         }
         report.ResetRunning();
         progress?.Report(report);
-
+        return copyFiles.ToArray();
     }
 }
