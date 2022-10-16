@@ -7,9 +7,9 @@ namespace Benchmark
     public class CopyDirectoryBenchmark
     {
         public int DirectoryDepth { get; set; } = 16;
-        public int FileNum { get; set; } = 256;
-        public int FileMinSize { get; set; } = 1024 * 1024;
-        public int FileMaxSize { get; set; } = 1024 * 1024 * 1024;
+        public int FileNum { get; set; } = 64;
+        public int FileMinSize { get; set; } = 1024;
+        public int FileMaxSize { get; set; } = 1024 * 1024 * 128;
 
         private string srcRoot = string.Empty;
         private string[] srcFiles = Array.Empty<string>();
