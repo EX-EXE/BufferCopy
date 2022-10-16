@@ -39,7 +39,7 @@ jobs:
       run: dotnet publish ./src/BufferCopy/ -c release --self-contained -p:PublishSingleFile=true -p:PublishTrimmed=true -p:PublishReadyToRun=true -p:Version=${{ env.VERSION }} -r ${{ env.RUNTIME }} -o /tmp/publish/${{ env.RUNTIME }}/
       
     - name: Upload
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
           name: ${{ env.RUNTIME }}
           path: /tmp/publish/${{ env.RUNTIME }}/ 
