@@ -72,7 +72,14 @@ public partial class CopyFileUtility
                 {
                     return;
                 }
-                await Task.Delay(option.ReportInterval, linkedCancelToken).ConfigureAwait(false);
+                try
+                {
+                    await Task.Delay(option.ReportInterval, linkedCancelToken).ConfigureAwait(false);
+                }
+                catch (TaskCanceledException)
+                {
+                    // None
+                }
             }
         }, linkedCancelToken);
 
