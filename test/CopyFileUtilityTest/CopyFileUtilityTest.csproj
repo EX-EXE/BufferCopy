@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\CopyFileUtility\CopyFileUtility.csproj" />
+    <ProjectReference Include="..\TestUtility\TestUtility.csproj" />
   </ItemGroup>
 
 </Project>

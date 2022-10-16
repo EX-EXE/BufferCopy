@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{5768EFB9-A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CopyFileUtilityTest", "test\CopyFileUtilityTest\CopyFileUtilityTest.csproj", "{628B78F2-E1DA-4A4E-91B2-F22046A50F19}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUtility", "test\TestUtility\TestUtility.csproj", "{EE6EBA7D-6DE3-41D1-ADBA-254D5A66398B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{628B78F2-E1DA-4A4E-91B2-F22046A50F19}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{628B78F2-E1DA-4A4E-91B2-F22046A50F19}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{628B78F2-E1DA-4A4E-91B2-F22046A50F19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE6EBA7D-6DE3-41D1-ADBA-254D5A66398B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE6EBA7D-6DE3-41D1-ADBA-254D5A66398B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE6EBA7D-6DE3-41D1-ADBA-254D5A66398B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE6EBA7D-6DE3-41D1-ADBA-254D5A66398B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -48,6 +54,7 @@ Global
 		{4F567258-27FB-451E-8640-8988CBBB15DA} = {ED120516-A90F-4799-A105-6E96DEEA4318}
 		{244DD8C0-DDB6-43C5-934E-DF36CAF4C9CE} = {6F7C8791-B408-4B71-9FE8-C846FD855129}
 		{628B78F2-E1DA-4A4E-91B2-F22046A50F19} = {5768EFB9-ABCA-4FEB-B62E-6ABF8A8FB122}
+		{EE6EBA7D-6DE3-41D1-ADBA-254D5A66398B} = {5768EFB9-ABCA-4FEB-B62E-6ABF8A8FB122}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BD8C8E29-268A-4E9D-AE10-64A3F0C69C88}

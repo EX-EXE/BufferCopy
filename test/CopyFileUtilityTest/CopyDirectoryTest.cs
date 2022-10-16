@@ -31,7 +31,7 @@ namespace CopyFileUtilityTest
         public async Task CopyDirectory()
         {
             // Create SrcFiles
-            var (srcRootDir, srcFiles) = TestUtility.CreateFiles(128, 16, 1024, 1024 * 1024, output);
+            var (srcRootDir, srcFiles) = TestUtility.CreateFiles(128, 16, 1024, 1024 * 1024);
             var dstRootDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.IO.Path.GetRandomFileName());
 
             // Copy Files
@@ -51,7 +51,7 @@ namespace CopyFileUtilityTest
         public async Task CopyDirectoryChangeFilePath()
         {
             // Create SrcFiles
-            var (srcRootDir, srcFiles) = TestUtility.CreateFiles(128, 16, 1024, 1024 * 1024, output);
+            var (srcRootDir, srcFiles) = TestUtility.CreateFiles(128, 16, 1024, 1024 * 1024);
             var dstRootDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.IO.Path.GetRandomFileName());
 
             // Copy Files
@@ -76,7 +76,7 @@ namespace CopyFileUtilityTest
         public async Task CopyDirectoryIncludeRegex()
         {
             // Create SrcFiles
-            var (srcRootDir, srcFiles) = TestUtility.CreateFiles(128, 16, 1024, 1024 * 1024, output);
+            var (srcRootDir, srcFiles) = TestUtility.CreateFiles(128, 16, 1024, 1024 * 1024);
             var dstRootDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.IO.Path.GetRandomFileName());
 
             var singleFiles = System.IO.Path.GetFileName(srcFiles[0]);
@@ -99,7 +99,7 @@ namespace CopyFileUtilityTest
         public async Task CopyDirectoryExcludeRegex()
         {
             // Create SrcFiles
-            var (srcRootDir, srcFiles) = TestUtility.CreateFiles(128, 16, 1024, 1024 * 1024, output);
+            var (srcRootDir, srcFiles) = TestUtility.CreateFiles(128, 16, 1024, 1024 * 1024);
             var dstRootDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.IO.Path.GetRandomFileName());
 
             var singleFileName = System.IO.Path.GetFileName(srcFiles[0]);
