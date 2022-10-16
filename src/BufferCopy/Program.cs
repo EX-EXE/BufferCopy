@@ -137,7 +137,7 @@ namespace BufferCopy
             var successCount = 0;
             var failCount = 0;
 
-            var progress = new Progress<CopyFileUtility.CopyDirectoryProgress>(x =>
+            var progress = new Progress<CopyFileUtility.CopyFilesProgress>(x =>
             {
                 if (!init)
                 {
@@ -150,7 +150,7 @@ namespace BufferCopy
                 }
 
                 // Add End FileSize/FileCount
-                var endIndex = x.RunningIndex != CopyFileUtility.CopyDirectoryProgress.EndIndex ? x.RunningIndex : x.Files.Length;
+                var endIndex = x.RunningIndex != CopyFileUtility.CopyFilesProgress.EndIndex ? x.RunningIndex : x.Files.Length;
                 for (var index = nextIndex; index < endIndex; ++index)
                 {
                     nextIndex = index + 1;
@@ -184,7 +184,7 @@ namespace BufferCopy
                 var fileSizePercent = CalcPercent(in currentFileSize, in totalSize);
                 Console.WriteLine($"{ConvertPercentStr(fileSizePercent)} | Success:{successCount.ToString().PadLeft(digitCount)} | Fail:{failCount.ToString().PadLeft(digitCount)} | Total:{allFileCount} | {fileStatus}");
             });
-            await CopyFileUtility.CopyDirectoryAsync(src, dst, SearchOption.AllDirectories, options, progress, default).ConfigureAwait(false);
+            await CopyFileUtility.CopyDirectoryAsync(src, dst, SearchOption.AllDirectories, options, false, progress, default).ConfigureAwait(false);
             return 0;
         }
 
