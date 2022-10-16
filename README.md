@@ -4,6 +4,11 @@
 
 Copy file and reports read/write progress.
 
+| File | Directory |
+|---|---|
+| ![file](https://user-images.githubusercontent.com/114784289/196020067-1673b1cd-a9a2-4193-910d-3549264c4906.gif) | ![dir](https://user-images.githubusercontent.com/114784289/196020076-b3b3b29c-200e-496f-9854-4b44a59745ef.gif) |
+
+
 ## Project
 | Name | Type| Desc |
 |---|---|---|
