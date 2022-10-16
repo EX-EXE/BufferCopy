@@ -25,7 +25,7 @@ jobs:
     - name: Benchmark
       run: dotnet run --project ./sandbox/Benchmark/Benchmark.csproj -c Release
     - name: Upload
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
           name: Benchmark_${{ matrix.os }}
           path: ./BenchmarkDotNet.Artifacts/results/
