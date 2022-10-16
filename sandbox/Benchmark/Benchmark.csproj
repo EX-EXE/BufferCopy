@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\CopyFileUtility\CopyFileUtility.csproj" />
+    <ProjectReference Include="..\..\test\TestUtility\TestUtility.csproj" />
   </ItemGroup>
 
 </Project>

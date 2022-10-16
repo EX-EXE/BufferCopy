@@ -4,67 +4,51 @@ namespace Benchmark
 {
     [MemoryDiagnoser]
     [ShortRunJob]
-    public class Test
+    public class CopyFileBenchmark
     {
-
         public long TestFileSize { get; set; } = 1L * 1024L * 1024L * 1024L;
 
         private string srcFile = string.Empty;
         private string dstFile = string.Empty;
 
-        public Test()
+        public CopyFileBenchmark()
         {
-            string CreateFile(long fileSize)
-            {
-                var path = System.IO.Path.GetTempFileName();
-                using var stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
-                stream.SetLength(fileSize);
+        }
 
-                var maxWriteSize = int.MaxValue / 2;
-                while (0 < fileSize)
-                {
-                    var createSize = maxWriteSize < fileSize ? maxWriteSize : fileSize;
-                    fileSize -= createSize;
-                    var data = new byte[createSize];
-                    var rnd = new Random((int)DateTime.Now.Ticks);
-                    rnd.NextBytes(data);
-                    stream.Write(data);
-                }
-                return path;
-            }
-            srcFile = CreateFile(TestFileSize);
+        [GlobalSetup]
+        public void GlobalSetup()
+        {
+            srcFile = TestUtility.CreateFile(TestFileSize);
+        }
+
+        [IterationSetup]
+        public void IterationSetup()
+        {
             dstFile = System.IO.Path.GetTempFileName();
+        }
+
+        [IterationCleanup]
+        public void IterationCleanup()
+        {
+            if (System.IO.File.Exists(dstFile))
+            {
+                System.IO.File.Delete(dstFile);
+            }
         }
 
         [Benchmark(Description = "System.IO.File.Copy")]
         public void DefaultCopy()
         {
-            if (System.IO.File.Exists(dstFile))
-            {
-                System.IO.File.Delete(dstFile);
-            }
             System.IO.File.Copy(srcFile, dstFile, true);
         }
-        
-        [Benchmark]
-        [Arguments(16, 8)]
-        [Arguments(256, 8)]
-        [Arguments(1024, 8)]
-        [Arguments(1024 * 1024, 8)]
-        [Arguments(16, 16)]
-        [Arguments(256, 16)]
-        [Arguments(1024, 16)]
-        [Arguments(1024 * 1024, 16)]
+
+        [Benchmark(Description = "CopyFileUtility.CopyFileAsync")]
         [Arguments(16, 30)]
         [Arguments(256, 30)]
         [Arguments(1024, 30)]
         [Arguments(1024 * 1024, 30)]
-        public async Task BufferCopy(int buffer,int pool)
+        public async Task CopyFileAsync(int buffer,int pool)
         {
-            if (System.IO.File.Exists(dstFile))
-            {
-                System.IO.File.Delete(dstFile);
-            }
             var option = new CopyFileUtility.CopyFileOptions()
             {
                 OverrideExistFile = true,
