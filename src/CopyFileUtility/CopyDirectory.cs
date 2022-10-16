@@ -14,7 +14,7 @@ public partial class CopyFileUtility
         string src,
         string dst,
         System.IO.SearchOption searchOption,
-        CopyFileOptions fileOption,
+        CopyFileOptions copyOptions,
         bool throwCopyException = false,
         IProgress<CopyFilesProgress>? progress = null,
         CancellationToken cancellationToken = default)
@@ -26,7 +26,7 @@ public partial class CopyFileUtility
             (Regex?)null,
             null,
             searchOption,
-            fileOption,
+            copyOptions,
             throwCopyException,
             progress,
             cancellationToken);
@@ -37,7 +37,7 @@ public partial class CopyFileUtility
         string dst,
         Func<string, string, string, string> changePathFunction,
         System.IO.SearchOption searchOption,
-        CopyFileOptions fileOption,
+        CopyFileOptions copyOptions,
         bool throwCopyException = false,
         IProgress<CopyFilesProgress>? progress = null,
         CancellationToken cancellationToken = default)
@@ -49,7 +49,7 @@ public partial class CopyFileUtility
             (Regex?)null,
             changePathFunction,
             searchOption,
-            fileOption,
+            copyOptions,
             throwCopyException,
             progress,
             cancellationToken);
@@ -62,7 +62,7 @@ public partial class CopyFileUtility
         string? excludeSrcPathRegex,
         Func<string, string, string, string>? changePathFunction,
         System.IO.SearchOption searchOption,
-        CopyFileOptions fileOption,
+        CopyFileOptions copyOptions,
         bool throwCopyException = false,
         IProgress<CopyFilesProgress>? progress = null,
         CancellationToken cancellationToken = default)
@@ -74,7 +74,7 @@ public partial class CopyFileUtility
             string.IsNullOrEmpty(excludeSrcPathRegex) ? null : new Regex(excludeSrcPathRegex, RegexOptions.Compiled),
             changePathFunction,
             searchOption,
-            fileOption,
+            copyOptions,
             throwCopyException,
             progress,
             cancellationToken);    
@@ -85,9 +85,9 @@ public partial class CopyFileUtility
         string dst,
         Regex? includeSrcPathRegex,
         Regex? excludeSrcPathRegex,
-        Func<string, string, string, string>? ChangePathFunction,
+        Func<string, string, string, string>? changePathFunction,
         System.IO.SearchOption searchOption,
-        CopyFileOptions fileOption,
+        CopyFileOptions copyOptions,
         bool throwCopyException = false,
         IProgress<CopyFilesProgress>? progress = null,
         CancellationToken cancellationToken = default)
@@ -117,9 +117,9 @@ public partial class CopyFileUtility
             var dstPath = System.IO.Path.Combine(dst, relativePath);
             var dstFullPath = System.IO.Path.GetFullPath(dstPath);
             // User Change FilePath
-            if(ChangePathFunction != null)
+            if(changePathFunction != null)
             {
-                dstFullPath = ChangePathFunction(srcFullPath,dstFullPath,relativePath);
+                dstFullPath = changePathFunction(srcFullPath,dstFullPath,relativePath);
                 if(string.IsNullOrEmpty(dstFullPath))
                 {
                     continue;
@@ -134,6 +134,6 @@ public partial class CopyFileUtility
                 FileSize = srcFileInfo.Length,
             });
         }
-        return CopyFilesAsync(copyFiles.ToArray(), fileOption, throwCopyException, progress, cancellationToken);
+        return CopyFilesAsync(copyFiles.ToArray(), copyOptions, throwCopyException, progress, cancellationToken);
     }
 }
