@@ -6,7 +6,7 @@ namespace Benchmark
     {
         static void Main(string[] args)
         {
-            BenchmarkRunner.Run<Test>();
+            BenchmarkRunner.Run<CopyFileBenchmark>();
         }
     }
 }
