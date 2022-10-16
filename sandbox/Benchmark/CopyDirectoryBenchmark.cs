@@ -14,7 +14,6 @@ namespace Benchmark
         private string srcRoot = string.Empty;
         private string[] srcFiles = Array.Empty<string>();
         private string dstRoot = string.Empty;
-        private string[] dstFiles = Array.Empty<string>();
 
         public CopyDirectoryBenchmark()
         {
@@ -35,7 +34,7 @@ namespace Benchmark
         [IterationCleanup]
         public void IterationCleanup()
         {
-            TestUtility.DeleteFiles(dstFiles);
+            TestUtility.DeleteFiles(System.IO.Directory.GetFiles(dstRoot, "*", SearchOption.AllDirectories));
         }
 
         [Benchmark(Description = "Official CopyDirectory")]
