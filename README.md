@@ -100,8 +100,8 @@ await CopyFileUtility.CopyDirectoryAsync(
 |---|---|
 | src | Source directory path. |
 | dst | Destination directory path. |
-| includeSrcPathRegex | Filtering copy targets using regular expressions. |
-| excludeSrcPathRegex | Exclude copy targets using regular expressions. |
+| includeSrcPathRegex | Filtering copy targets using regular expressions.(Target all files if null.) |
+| excludeSrcPathRegex | Exclude copy targets using regular expressions.(Do nothing if null.) |
 | changePathFunction | Change the destination file path.<br />in: string srcFile,string dstFile,string relativePath<br />out: string changeDstFile(Do not copy if empty.)
 | searchOptions | Search top directory or all subdirectories. |
 | copyOptions | Copy option. |
