@@ -23,62 +23,12 @@ namespace CopyFileUtilityTest
             return ret;
         }
 
-        private static string CreateFile(long fileSize)
-        {
-            var path = System.IO.Path.GetTempFileName();
-            using var stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
-            stream.SetLength(fileSize);
-
-            var maxWriteSize = int.MaxValue / 2;
-            while (0 < fileSize)
-            {
-                var createSize = maxWriteSize < fileSize ? maxWriteSize : fileSize;
-                fileSize -= createSize;
-                var data = new byte[createSize];
-                var rnd = new Random((int)DateTime.Now.Ticks);
-                rnd.NextBytes(data);
-                stream.Write(data);
-            }
-            return path;
-        }
-
-        private static bool CompareFile(string pathA,string pathB)
-        {
-            if (!System.IO.File.Exists(pathA))
-            {
-                throw new System.IO.FileNotFoundException(pathA);
-            }
-            if (!System.IO.File.Exists(pathB))
-            {
-                throw new System.IO.FileNotFoundException(pathB);
-            }
-
-            using var streamA = new FileStream(pathA, FileMode.Open, FileAccess.Read, FileShare.Read);
-            using var streamB = new FileStream(pathB, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if(streamA.Length != streamB.Length)
-            {
-                return false;
-            }
-
-            var byteA = new Span<byte>(new byte[1024]);
-            var byteB = new Span<byte>(new byte[1024]);
-            while (streamA.Length != streamA.Position && streamB.Length != streamB.Position)
-            {
-                var readA = streamA.Read(byteA);
-                var readB = streamB.Read(byteB);
-                if(readA != readB || !byteA.SequenceEqual(byteB))
-                {
-                    return false;
-                }
-            }
-            return streamA.Position == streamB.Position;
-        }
 
         [Theory]
         [MemberData(nameof(FileSizeArray))]
         public async Task CopyFile(long fileSize)
         {
-            var srcFile = CreateFile(fileSize);
+            var srcFile = TestUtility.CreateFile(fileSize);
             var dstFile = System.IO.Path.GetTempFileName();
 
             var option = new CopyFileOptions()
@@ -86,12 +36,11 @@ namespace CopyFileUtilityTest
                 OverrideExistFile = true,
             };
             await CopyFileUtility.CopyFileAsync(srcFile, dstFile, option, null, default).ConfigureAwait(false);
-            Assert.True(CompareFile(srcFile, dstFile));
+            Assert.True(TestUtility.CompareFile(srcFile, dstFile));
 
             System.IO.File.Delete(dstFile);
             System.IO.File.Delete(srcFile);
         }
-
 
         [Fact]
         public async Task CopyOverride()
@@ -103,9 +52,9 @@ namespace CopyFileUtilityTest
             };
             foreach (var fileSize in new[] { 1024, 1024 * 1024, 1024 * 2 })
             {
-                var srcFile = CreateFile(fileSize);
+                var srcFile = TestUtility.CreateFile(fileSize);
                 await CopyFileUtility.CopyFileAsync(srcFile, dstFile, option, null, default).ConfigureAwait(false);
-                Assert.True(CompareFile(srcFile, dstFile));
+                Assert.True(TestUtility.CompareFile(srcFile, dstFile));
                 System.IO.File.Delete(srcFile);
             }
             System.IO.File.Delete(dstFile);
