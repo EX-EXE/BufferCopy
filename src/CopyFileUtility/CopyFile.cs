@@ -154,7 +154,7 @@ public partial class CopyFileUtility
                 using var readStream = new FileStream(src, FileMode.Open, FileAccess.Read, FileShare.Read);
                 while (readStream.Position != readStream.Length)
                 {
-                    var (memoryData, bitNum) = memoryPool.Rent();
+                    var (memoryData, bitNum) = await memoryPool.RentAsync().ConfigureAwait(false);
                     var readSize = await readStream.ReadAsync(memoryData, cancellationToken).ConfigureAwait(false);
                     reportInfo.AddReadedSize(readSize);
                     await writeChannel.Writer.WriteAsync((memoryData.Slice(0, readSize), bitNum), linkedCancelToken).ConfigureAwait(false);
