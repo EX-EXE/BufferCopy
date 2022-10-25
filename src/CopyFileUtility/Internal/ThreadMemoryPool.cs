@@ -28,7 +28,7 @@ namespace CopyFileUtility_Internal
             Reset();
         }
 
-        public async ValueTask<(Memory<byte>, int)> RentAsync()
+        public (Memory<byte>,int) Rent()
         {
             while(true)
             {
@@ -45,7 +45,7 @@ namespace CopyFileUtility_Internal
                     ++pos;
                     return (dataBuff, dataPos);
                 }
-                await Task.Yield();
+                Thread.Yield();
             }
         }
 
