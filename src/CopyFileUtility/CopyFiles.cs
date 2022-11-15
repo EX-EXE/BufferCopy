@@ -56,7 +56,7 @@ public partial class CopyFileUtility
         cancellationToken.ThrowIfCancellationRequested();
 
         // MemoryPool
-        var memoryPool = new ThreadMemoryPool(fileOption.BufferSize, fileOption.PoolSize);
+        using var memoryPool = new ThreadMemoryPool(fileOption.BufferSize, fileOption.PoolSize);
 
         // Copy
         var report = new CopyFilesProgress()

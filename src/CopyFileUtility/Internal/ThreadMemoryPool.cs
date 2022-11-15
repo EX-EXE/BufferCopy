@@ -1,14 +1,16 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CopyFileUtility_Internal
 {
 
-    internal class ThreadMemoryPool
+    internal class ThreadMemoryPool : IDisposable
     {
         private volatile int pos;
         private int max;
@@ -16,7 +18,7 @@ namespace CopyFileUtility_Internal
         private int initFlag;
         private int unusedFlag;
         private int bufferSize;
-        private Memory<byte> bufferData;
+        private byte[] bufferData;
 
         public ThreadMemoryPool(int bufferSize,int poolSize)
         {
@@ -24,7 +26,7 @@ namespace CopyFileUtility_Internal
             max = poolSize;
             initFlag = BitUtility.GetFillInt(poolSize);
             this.bufferSize = bufferSize;
-            bufferData = new Memory<byte>(new byte[bufferSize * poolSize]);
+            bufferData = ArrayPool<byte>.Shared.Rent(bufferSize * poolSize);
             Reset();
         }
 
@@ -40,7 +42,7 @@ namespace CopyFileUtility_Internal
                 if (((unusedFlag >> pos) & 1) == 1)
                 {
                     Interlocked.Add(ref unusedFlag, -BitUtility.GetFlagInt(pos));
-                    var dataBuff = bufferData.Slice(bufferSize * pos, bufferSize);
+                    var dataBuff = bufferData.AsMemory(bufferSize * pos, bufferSize);
                     var dataPos = pos;
                     ++pos;
                     return (dataBuff, dataPos);
@@ -57,6 +59,25 @@ namespace CopyFileUtility_Internal
         public void Reset()
         {
             unusedFlag = initFlag;
+        }
+
+        private bool disposedValue;
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    ArrayPool<byte>.Shared.Return(bufferData);
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }
