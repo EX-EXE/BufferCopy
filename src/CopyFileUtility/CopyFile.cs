@@ -108,7 +108,7 @@ public partial class CopyFileUtility
                 }
 
                 // WriteFile
-                using var writeStream = new FileStream(dst, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+                using var writeStream = new FileStream(dst, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, true);
                 writeStream.SetLength(reportInfo.FileSize);
                 while (await writeChannel.Reader.WaitToReadAsync(linkedCancelToken).ConfigureAwait(false))
                 {
@@ -151,7 +151,7 @@ public partial class CopyFileUtility
         {
             try
             {
-                using var readStream = new FileStream(src, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using var readStream = new FileStream(src, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
                 while (readStream.Position != readStream.Length)
                 {
                     var (memoryData, bitNum) = memoryPool.Rent();
