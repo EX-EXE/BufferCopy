@@ -10,5 +10,6 @@
     <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>Copy file and reports read/write progress.</Description>
   </PropertyGroup>
 </Project>
