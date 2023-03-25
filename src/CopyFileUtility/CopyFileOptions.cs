@@ -18,7 +18,6 @@ public partial class CopyFileUtility
     public class CopyFileOptions
     {
         public int BufferSize { get; set; } = 1024 * 1024 * 256;
-        public int PoolSize { get; set; } = 512;
 
         public bool OverrideExistFile { get; set; } = false;
 
