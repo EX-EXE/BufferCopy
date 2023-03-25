@@ -1,6 +1,7 @@
 ﻿using CopyFileUtility_Internal;
 using Microsoft.VisualBasic.FileIO;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -21,13 +22,13 @@ public partial class CopyFileUtility
         // Memory
         var srcFileSize = new System.IO.FileInfo(src.ToString()).Length;
         var bufferSize = srcFileSize < option.BufferSize ? srcFileSize : option.BufferSize;
-        using var memoryPool = new ThreadMemoryPool((int)bufferSize, option.PoolSize);
+        using var memoryPool = new MemoryPool((int)bufferSize, option.PoolSize);
         // Copy
         await CopyFileAsync(memoryPool, src, dst, option, progress, cancellationToken).ConfigureAwait(false);
     }
 
     private static async ValueTask CopyFileAsync(
-        ThreadMemoryPool memoryPool,
+        MemoryPool memoryPool,
          string src,
          string dst,
          CopyFileOptions option,
@@ -83,17 +84,14 @@ public partial class CopyFileUtility
             }
         }, linkedCancelToken);
 
-        // Memory
-        memoryPool.Reset();
-
         // Channel
-        var channelOption = new BoundedChannelOptions(option.PoolSize)
+        var channelOption = new UnboundedChannelOptions()
         {
-            FullMode = BoundedChannelFullMode.Wait,
+            AllowSynchronousContinuations = false,
             SingleReader = true,
             SingleWriter = true,
         };
-        var writeChannel = Channel.CreateBounded<(Memory<byte>, int)>(channelOption);
+        var writeChannel = Channel.CreateUnbounded<MemoryEx<byte>>(channelOption);
 
         // WriteTask
         var writeTask = Task.Run(async () =>
@@ -108,21 +106,22 @@ public partial class CopyFileUtility
                 }
 
                 // WriteFile
-                using var writeStream = new FileStream(dst, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite, 4096, true);
+                using var writeStream = new FileStream(dst, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite, 1, false);
                 writeStream.SetLength(reportInfo.FileSize);
+                MemoryEx<byte> memory = default;
                 while (await writeChannel.Reader.WaitToReadAsync(linkedCancelToken).ConfigureAwait(false))
                 {
-                    await foreach (var (memoryData, bitNum) in writeChannel.Reader.ReadAllAsync(linkedCancelToken).ConfigureAwait(false))
+                    linkedCancelToken.ThrowIfCancellationRequested();
+                    while (writeChannel.Reader.TryRead(out memory))
                     {
-                        linkedCancelToken.ThrowIfCancellationRequested();
                         try
                         {
-                            await writeStream.WriteAsync(memoryData, cancellationToken).ConfigureAwait(false);
-                            reportInfo.AddWritedSize(memoryData.Length);
+                            writeStream.Write(memory.Data.Span);
+                            reportInfo.AddWritedSize(memory.Data.Length);
                         }
                         finally
                         {
-                            memoryPool.Return(bitNum);
+                            memoryPool.Return(memory);
                         }
                     }
                 }
@@ -147,17 +146,21 @@ public partial class CopyFileUtility
         }, linkedCancelToken);
 
         // ReadTask
-        var readTask = Task.Run(async () =>
+        var readTask = Task.Run(() =>
         {
             try
             {
-                using var readStream = new FileStream(src, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
+                using var readStream = new FileStream(src, FileMode.Open, FileAccess.Read, FileShare.Read, 1, false);
                 while (readStream.Position != readStream.Length)
                 {
-                    var (memoryData, bitNum) = memoryPool.Rent();
-                    var readSize = await readStream.ReadAsync(memoryData, cancellationToken).ConfigureAwait(false);
+                    linkedCancelToken.ThrowIfCancellationRequested();
+                    var memoryData = memoryPool.Rent();
+                    var readSize = readStream.Read(memoryData.Data.Span);
                     reportInfo.AddReadedSize(readSize);
-                    await writeChannel.Writer.WriteAsync((memoryData.Slice(0, readSize), bitNum), linkedCancelToken).ConfigureAwait(false);
+                    if (!writeChannel.Writer.TryWrite(memoryData.Slice(0,readSize)))
+                    {
+                        throw new InvalidOperationException($"Write ReadData Error.");
+                    }
                 }
                 writeChannel.Writer.Complete();
             }
@@ -184,7 +187,7 @@ public partial class CopyFileUtility
         }
         finally
         {
-            if(!linkedCancelTokenSource.IsCancellationRequested)
+            if (!linkedCancelTokenSource.IsCancellationRequested)
             {
                 linkedCancelTokenSource.Cancel();
             }
