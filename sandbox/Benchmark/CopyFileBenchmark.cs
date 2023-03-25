@@ -48,7 +48,7 @@ namespace Benchmark
         [Arguments(1024 * 256)]
         [Arguments(1024 * 512)]
         [Arguments(1024 * 1024)]
-        public async Task CopyFileAsync(int buffer,int pool)
+        public async Task CopyFileAsync(int buffer)
         {
             var option = new CopyFileUtility.CopyFileOptions()
             {
