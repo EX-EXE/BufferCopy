@@ -43,10 +43,10 @@ namespace Benchmark
         }
 
         [Benchmark(Description = "CopyFileUtility.CopyFileAsync")]
-        [Arguments(16, 30)]
-        [Arguments(256, 30)]
-        [Arguments(1024, 30)]
-        [Arguments(1024 * 1024, 30)]
+        [Arguments(16, 512)]
+        [Arguments(256, 512)]
+        [Arguments(1024, 512)]
+        [Arguments(1024 * 1024, 512)]
         public async Task CopyFileAsync(int buffer,int pool)
         {
             var option = new CopyFileUtility.CopyFileOptions()
