@@ -22,7 +22,7 @@ public partial class CopyFileUtility
         // Memory
         var srcFileSize = new System.IO.FileInfo(src.ToString()).Length;
         var bufferSize = srcFileSize < option.BufferSize ? srcFileSize : option.BufferSize;
-        using var memoryPool = new MemoryPool((int)bufferSize, option.PoolSize);
+        using var memoryPool = new MemoryPool((int)bufferSize);
         // Copy
         await CopyFileAsync(memoryPool, src, dst, option, progress, cancellationToken).ConfigureAwait(false);
     }
@@ -91,7 +91,7 @@ public partial class CopyFileUtility
             SingleReader = true,
             SingleWriter = true,
         };
-        var writeChannel = Channel.CreateUnbounded<MemoryEx<byte>>(channelOption);
+        var writeChannel = Channel.CreateUnbounded<(MemoryEx<byte> memory,int readSize)>(channelOption);
 
         // WriteTask
         var writeTask = Task.Run(async () =>
@@ -108,20 +108,22 @@ public partial class CopyFileUtility
                 // WriteFile
                 using var writeStream = new FileStream(dst, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite, 1, false);
                 writeStream.SetLength(reportInfo.FileSize);
-                MemoryEx<byte> memory = default;
+                (MemoryEx<byte>, int) item = default;
                 while (await writeChannel.Reader.WaitToReadAsync(linkedCancelToken).ConfigureAwait(false))
                 {
                     linkedCancelToken.ThrowIfCancellationRequested();
-                    while (writeChannel.Reader.TryRead(out memory))
+                    while (writeChannel.Reader.TryRead(out item))
                     {
                         try
                         {
-                            writeStream.Write(memory.Data.Span);
-                            reportInfo.AddWritedSize(memory.Data.Length);
+                            var data = item.Item1.Data;
+                            var readSize = item.Item2;
+                            writeStream.Write(data.Span.Slice(0, readSize));
+                            reportInfo.AddWritedSize(readSize);
                         }
                         finally
                         {
-                            memoryPool.Return(memory);
+                            memoryPool.Return(item.Item1);
                         }
                     }
                 }
@@ -157,7 +159,7 @@ public partial class CopyFileUtility
                     var memoryData = memoryPool.Rent();
                     var readSize = readStream.Read(memoryData.Data.Span);
                     reportInfo.AddReadedSize(readSize);
-                    if (!writeChannel.Writer.TryWrite(memoryData.Slice(0,readSize)))
+                    if (!writeChannel.Writer.TryWrite((memoryData,readSize)))
                     {
                         throw new InvalidOperationException($"Write ReadData Error.");
                     }
