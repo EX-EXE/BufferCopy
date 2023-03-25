@@ -122,7 +122,7 @@ namespace CopyFileUtility_Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()
         {
-            beforeMemorySize = 0;
+            totalBufferSize = 0;
             stopwatch.Reset();
             ResetMemoryCategory();
         }
