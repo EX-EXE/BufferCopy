@@ -109,9 +109,9 @@ namespace CopyFileUtility_Internal
         private readonly static int maxSize = int.MaxValue;
 
         private readonly int maxBufferSize;
+
         private int totalBufferSize = 0;
         private int beforeMemorySize = 0;
-
         private Stopwatch stopwatch = new Stopwatch();
 
         public MemoryPool(int maxBufferSize)
@@ -120,11 +120,15 @@ namespace CopyFileUtility_Internal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Reset()
+        public void Reset(bool returnMemory = false)
         {
-            totalBufferSize = 0;
             stopwatch.Reset();
-            ResetMemoryCategory();
+            beforeMemorySize = 0;
+            if (returnMemory)
+            {
+                totalBufferSize = 0;
+                ResetMemoryCategory();
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
