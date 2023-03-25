@@ -12,15 +12,15 @@
 	    <AutoGen>True</AutoGen>
 	    <DependentUpon>BitUtility_Flag.tt</DependentUpon>
 	  </Compile>
-	  <Compile Update="Internal\Memory.cs">
+	  <Compile Update="Internal\MemoryCategories.cs">
 	    <DesignTime>True</DesignTime>
 	    <AutoGen>True</AutoGen>
-	    <DependentUpon>Memory.tt</DependentUpon>
+	    <DependentUpon>MemoryCategories.tt</DependentUpon>
 	  </Compile>
 	</ItemGroup>
 	<ItemGroup>
-	  <None Update="Internal\Memory.tt">
-	    <LastGenOutput>Memory.cs</LastGenOutput>
+	  <None Update="Internal\MemoryCategories.tt">
+	    <LastGenOutput>MemoryCategories.cs</LastGenOutput>
 	    <Generator>TextTemplatingFileGenerator</Generator>
 	  </None>
 	  <None Update="Internal\BitUtility_Flag.tt">

@@ -25,7 +25,7 @@ public partial class CopyFileUtility
         public FileAttributes CopyAttributes { get; set; } = 0;
         public FileDates CopyDates { get; set; } = FileDates.None;
 
-        public TimeSpan ReportInterval { get; set; } = TimeSpan.FromMilliseconds(500);
+        public TimeSpan ReportInterval { get; set; } = TimeSpan.FromMilliseconds(2500);
 
     }
 }

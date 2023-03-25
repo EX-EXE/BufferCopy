@@ -84,6 +84,9 @@ public partial class CopyFileUtility
             }
         }, linkedCancelToken);
 
+        // MemoryPool
+        memoryPool.Reset();
+
         // Channel
         var channelOption = new UnboundedChannelOptions()
         {

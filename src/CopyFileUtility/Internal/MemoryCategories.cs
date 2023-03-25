@@ -1,7 +1,6 @@
 ﻿
 
 using System.Runtime.CompilerServices;
-
 namespace CopyFileUtility_Internal
 {
     internal partial class MemoryPool
@@ -17,7 +16,7 @@ namespace CopyFileUtility_Internal
         private readonly MemoryCategory Memory16777216 = new MemoryCategory(16777216);
         private readonly MemoryCategory Memory67108864 = new MemoryCategory(67108864);
         private readonly MemoryCategory Memory134217728 = new MemoryCategory(134217728);
-        private readonly MemoryCategory Memory536870912 = new MemoryCategory(536870912);
+        private readonly MemoryCategory Memory268435456 = new MemoryCategory(268435456);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         MemoryCategory GetMemoryCategory(int size)
@@ -36,12 +35,12 @@ namespace CopyFileUtility_Internal
                 > 4194304 and <= 16777216  => Memory16777216,
                 > 16777216 and <= 67108864  => Memory67108864,
                 > 67108864 and <= 134217728  => Memory134217728,
-                _ => Memory536870912
+                _ => Memory268435456
             };
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        bool TryGetMemoryCategory(int size,out MemoryCategory? category)
+        bool TryGetNotEmptyMemoryCategory(int size,out MemoryCategory? category)
         {
             if( size < Memory1024.Size  && !Memory1024.IsEmpty() )
             {
@@ -98,14 +97,14 @@ namespace CopyFileUtility_Internal
                 category = Memory134217728;
                 return true;
             }
-            if( size < Memory536870912.Size  && !Memory536870912.IsEmpty() )
+            if( size < Memory268435456.Size  && !Memory268435456.IsEmpty() )
             {
-                category = Memory536870912;
+                category = Memory268435456;
                 return true;
             }
-            if( Memory536870912.Size < size && !Memory536870912.IsEmpty() )
+            if( Memory268435456.Size < size && !Memory268435456.IsEmpty() )
             {
-                category = Memory536870912;
+                category = Memory268435456;
                 return true;
             }
             if( Memory134217728.Size < size && !Memory134217728.IsEmpty() )
@@ -170,7 +169,7 @@ namespace CopyFileUtility_Internal
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        void Reset()
+        void ResetMemoryCategory()
         {
             Memory1024.Reset();
             Memory4096.Reset();
@@ -183,7 +182,7 @@ namespace CopyFileUtility_Internal
             Memory16777216.Reset();
             Memory67108864.Reset();
             Memory134217728.Reset();
-            Memory536870912.Reset();
+            Memory268435456.Reset();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -200,7 +199,7 @@ namespace CopyFileUtility_Internal
             Memory16777216.Dispose();
             Memory67108864.Dispose();
             Memory134217728.Dispose();
-            Memory536870912.Dispose();
+            Memory268435456.Dispose();
         }
 
     }

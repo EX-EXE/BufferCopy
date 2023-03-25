@@ -19,11 +19,11 @@
         1024 * 1024 * 16,
         1024 * 1024 * 64,
         1024 * 1024 * 128,
+        1024 * 1024 * 256,
     };
 #>
 
 using System.Runtime.CompilerServices;
-
 namespace CopyFileUtility_Internal
 {
     internal partial class MemoryPool
@@ -47,7 +47,7 @@ namespace CopyFileUtility_Internal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        bool TryGetMemoryCategory(int size,out MemoryCategory? category)
+        bool TryGetNotEmptyMemoryCategory(int size,out MemoryCategory? category)
         {
 <# foreach(var memorySize in MemorySizes) { #>
             if( size < Memory<#= memorySize #>.Size  && !Memory<#= memorySize #>.IsEmpty() )
@@ -70,7 +70,7 @@ namespace CopyFileUtility_Internal
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        void Reset()
+        void ResetMemoryCategory()
         {
 <# foreach(var memorySize in MemorySizes) { #>
             Memory<#= memorySize #>.Reset();

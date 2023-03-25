@@ -72,6 +72,9 @@ namespace CopyFileUtility_Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()
         {
+            while(bufferChannel.Reader.TryRead(out _))
+            {
+            }
             foreach (var data in dataList)
             {
                 ArrayPool<byte>.Shared.Return(data);
@@ -106,21 +109,28 @@ namespace CopyFileUtility_Internal
         private readonly static int maxSize = int.MaxValue;
 
         private readonly int maxBufferSize;
-        private int currentBufferSize = 0;
+        private int totalBufferSize = 0;
         private int beforeMemorySize = 0;
 
         private Stopwatch stopwatch = new Stopwatch();
-
 
         public MemoryPool(int maxBufferSize)
         {
             this.maxBufferSize = maxBufferSize;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Reset()
+        {
+            beforeMemorySize = 0;
+            stopwatch.Reset();
+            ResetMemoryCategory();
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public MemoryEx<byte> Rent()
         {
+            // Calc RentSize
             var rentSize = defaultMemorySize;
             if (beforeMemorySize != 0)
             {
@@ -129,6 +139,10 @@ namespace CopyFileUtility_Internal
                 if (0.0 < elapsedSec)
                 {
                     var byteSizePerSec = beforeMemorySize * (1.0 / elapsedSec);
+                    if(int.MaxValue <= byteSizePerSec)
+                    {
+                        byteSizePerSec = int.MaxValue;
+                    }
                     rentSize = (int)(byteSizePerSec * (double)0.5); // 0.5 Sec
                 }
             }
@@ -140,25 +154,25 @@ namespace CopyFileUtility_Internal
             while (true)
             {
                 var category = GetMemoryCategory(rentSize);
-                if(!category.IsEmpty())
+                if (!category.IsEmpty())
                 {
                     // CacheData
                     var data = category.Rent();
                     beforeMemorySize = data.Data.Length;
                     return data;
                 }
-                if(currentBufferSize < maxBufferSize)
+                if (totalBufferSize < maxBufferSize)
                 {
-                    beforeMemorySize += category.Size;
+                    totalBufferSize += category.Size;
                     // NewData
                     var data = category.Rent();
-                    currentBufferSize = data.Data.Length;
+                    beforeMemorySize = data.Data.Length;
                     return data;
                 }
-                if(TryGetMemoryCategory(rentSize,out var memory) && memory != null)
+                if (TryGetNotEmptyMemoryCategory(rentSize, out var memory) && memory != null)
                 {
-                    var data = category.Rent();
-                    currentBufferSize = data.Data.Length;
+                    var data = memory.Rent();
+                    beforeMemorySize = data.Data.Length;
                     return data;
                 }
                 Thread.Yield();
