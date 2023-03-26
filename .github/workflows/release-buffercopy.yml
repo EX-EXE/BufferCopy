@@ -37,10 +37,10 @@ jobs:
             runtime: "osx-x64"
             publish: BufferCopy
             upload: BufferCopy.osx-x64
-          - platform: "macos-latest"
-            runtime: "osx-arm64"
-            publish: BufferCopy
-            upload: BufferCopy.osx-arm64
+          #- platform: "macos-latest"
+          #  runtime: "osx-arm64"
+          #  publish: BufferCopy
+          #  upload: BufferCopy.osx-arm64
           - platform: "ubuntu-latest"
             runtime: "linux-x64"
             publish: BufferCopy
