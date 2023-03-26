@@ -54,7 +54,6 @@ namespace BufferCopy
             Console.WriteLine($"    SrcFile : Copy SrcFile");
             Console.WriteLine($"    DstFile : Copy DstFile");
             Console.WriteLine($"    BufferSize(MiB) : Single Read Buffer Size");
-            Console.WriteLine($"    PoolSize : Pool Size");
             Console.WriteLine($"    ReportInterval : Update Frequency");
         }
 
