@@ -29,10 +29,10 @@ jobs:
             runtime: "win-x64"
             publish: BufferCopy.exe
             upload: BufferCopy.win-x64.exe
-          - platform: "windows-latest"
-            runtime: "win-arm64"
-            publish: BufferCopy.exe
-            upload: BufferCopy.win-arm64.exe
+          #- platform: "windows-latest"
+          #  runtime: "win-arm64"
+          #  publish: BufferCopy.exe
+          #  upload: BufferCopy.win-arm64.exe
           - platform: "macos-latest"
             runtime: "osx-x64"
             publish: BufferCopy
@@ -45,10 +45,10 @@ jobs:
             runtime: "linux-x64"
             publish: BufferCopy
             upload: BufferCopy.linux-x64
-          - platform: "ubuntu-latest"
-            runtime: "linux-arm64"
-            publish: BufferCopy
-            upload: BufferCopy.linux-arm64
+          #- platform: "ubuntu-latest"
+          #  runtime: "linux-arm64"
+          #  publish: BufferCopy
+          #  upload: BufferCopy.linux-arm64
     runs-on: ${{ matrix.platform }}
     
     steps:
