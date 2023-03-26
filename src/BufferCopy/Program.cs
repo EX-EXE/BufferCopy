@@ -41,16 +41,13 @@ namespace BufferCopy
 
         static void OutputHelp()
         {
-            Console.WriteLine($"BufferCopy.exe File <SrcFile> <DstFile> [BufferSize(MiB)] [PoolSize] [ReportInterval(Sec)]");
-            Console.WriteLine();
+            Console.WriteLine($"BufferCopy.exe File <SrcFile> <DstFile> [BufferSize(MiB)] [ReportInterval(Sec)]");
             Console.WriteLine($"    SrcFile : Copy SrcFile");
             Console.WriteLine($"    DstFile : Copy DstFile");
             Console.WriteLine($"    BufferSize(MiB) : Single Read Buffer Size");
-            Console.WriteLine($"    PoolSize : Pool Size");
             Console.WriteLine($"    ReportInterval : Update Frequency");
             Console.WriteLine();
-            Console.WriteLine($"BufferCopy.exe Directory <SrcDir> <DstDir> [BufferSize(MiB)] [PoolSize] [ReportInterval(Sec)]");
-            Console.WriteLine();
+            Console.WriteLine($"BufferCopy.exe Directory <SrcDir> <DstDir> [BufferSize(MiB)] [ReportInterval(Sec)]");
             Console.WriteLine($"    SrcFile : Copy SrcFile");
             Console.WriteLine($"    DstFile : Copy DstFile");
             Console.WriteLine($"    BufferSize(MiB) : Single Read Buffer Size");
