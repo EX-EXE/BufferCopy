@@ -15,11 +15,41 @@ on:
 env:
   VERSION: ${{ github.event.inputs.version }}
   RELEASE: ${{ github.event.inputs.release }}
-  RUNTIME: "win-x64"
+  UPLOAD_NAME: "Upload"
+  PUBLISH_DIR: "/tmp/publish/"
+  APP_NAME: "BufferCopy"
+  ASSEMBLY_NAME: "BufferCopy"
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - platform: "windows-latest"
+            runtime: "win-x64"
+            publish: BufferCopy.exe
+            upload: BufferCopy.win-x64.exe
+          - platform: "windows-latest"
+            runtime: "win-arm64"
+            publish: BufferCopy.exe
+            upload: BufferCopy.win-arm64.exe
+          - platform: "macos-latest"
+            runtime: "osx-x64"
+            publish: BufferCopy
+            upload: BufferCopy.osx-x64
+          - platform: "macos-latest"
+            runtime: "osx-arm64"
+            publish: BufferCopy
+            upload: BufferCopy.osx-arm64
+          - platform: "ubuntu-latest"
+            runtime: "linux-x64"
+            publish: BufferCopy
+            upload: BufferCopy.linux-x64
+          - platform: "ubuntu-latest"
+            runtime: "linux-arm64"
+            publish: BufferCopy
+            upload: BufferCopy.linux-arm64
+    runs-on: ${{ matrix.platform }}
     
     steps:
     - name: Checkout
@@ -36,13 +66,20 @@ jobs:
       run: dotnet restore
       
     - name: Publish
-      run: dotnet publish ./src/BufferCopy/ -c release --self-contained -p:Version=${{ env.VERSION }} -r ${{ env.RUNTIME }} -o /tmp/publish/${{ env.RUNTIME }}/
+      run: dotnet publish ./src/${{ env.ASSEMBLY_NAME }}/ -c release --self-contained -p:PublishSingleFile=true -p:PublishReadyToRun=true -p:PublishTrimmed=true -p:Version=${{ env.VERSION }} -r ${{ matrix.runtime }} -o ${{ env.PUBLISH_DIR }}${{ matrix.runtime }}/
       
+    - name: Display Publish Directory
+      run: |
+           ls ${{ env.PUBLISH_DIR }}${{ matrix.runtime }}/ 
+           
+    - name: Rename
+      run: |
+           mv ${{ env.PUBLISH_DIR }}${{ matrix.runtime }}/${{ matrix.publish }} ${{ env.PUBLISH_DIR }}${{ matrix.runtime }}/${{ matrix.upload }}
     - name: Upload
       uses: actions/upload-artifact@v3
       with:
-          name: ${{ env.RUNTIME }}
-          path: /tmp/publish/${{ env.RUNTIME }}/ 
+          name: ${{ env.UPLOAD_NAME }}
+          path: ${{ env.PUBLISH_DIR }}${{ matrix.runtime }}/${{ matrix.upload }}
            
 
   release:
@@ -55,42 +92,19 @@ jobs:
         with:
           fetch-depth: 0
           
-      - name: Create GitTag
-        run: git tag Release/${{ env.VERSION }}
-        
-      - name: Push GitTag
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
-          tags: true
-          
-      - name: Create Release
-        uses: actions/create-release@v1
-        id: create_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: Release/${{ env.VERSION }}
-          release_name: BufferCopy Ver.${{ env.VERSION }}
-          draft: true
-          prerelease: false
-          
       - name: Download Release Asset
         uses: actions/download-artifact@v3
         id: download_asset
         with:
-          name: ${{ env.RUNTIME }}
-          path: /tmp/release/${{ env.RUNTIME }}/ 
-          
+          name: ${{ env.UPLOAD_NAME }}
+          path: /tmp/release/${{ env.UPLOAD_NAME }}/ 
+
       - name: Upload Release Asset
         id: upload-release-asset 
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.download_asset.outputs.download-path }}/BufferCopy.exe
-          asset_name: BufferCopy.exe
-          asset_content_type: application/octet-stream
-      
+          name: ${{ env.APP_NAME }} Ver.${{ env.VERSION }}
+          files: /tmp/release/${{ env.UPLOAD_NAME }}/*
+          tag_name: Release/${{ env.VERSION }}
