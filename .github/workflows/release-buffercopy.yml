@@ -66,7 +66,7 @@ jobs:
       run: dotnet restore
       
     - name: Publish
-      run: dotnet publish ./src/${{ env.ASSEMBLY_NAME }}/ -c release --self-contained -p:PublishSingleFile=true -p:PublishReadyToRun=true -p:PublishTrimmed=true -p:Version=${{ env.VERSION }} -r ${{ matrix.runtime }} -o ${{ env.PUBLISH_DIR }}${{ matrix.runtime }}/
+      run: dotnet publish ./src/${{ env.ASSEMBLY_NAME }}/ -c release -p:Version=${{ env.VERSION }} -r ${{ matrix.runtime }} -o ${{ env.PUBLISH_DIR }}${{ matrix.runtime }}/
       
     - name: Display Publish Directory
       run: |
