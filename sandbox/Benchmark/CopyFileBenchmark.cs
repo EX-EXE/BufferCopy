@@ -43,17 +43,17 @@ namespace Benchmark
         }
 
         [Benchmark(Description = "CopyFileUtility.CopyFileAsync")]
-        [Arguments(16, 30)]
-        [Arguments(256, 30)]
-        [Arguments(1024, 30)]
-        [Arguments(1024 * 1024, 30)]
-        public async Task CopyFileAsync(int buffer,int pool)
+        [Arguments(1024)]
+        [Arguments(1024 * 128)]
+        [Arguments(1024 * 256)]
+        [Arguments(1024 * 512)]
+        [Arguments(1024 * 1024)]
+        public async Task CopyFileAsync(int buffer)
         {
             var option = new CopyFileUtility.CopyFileOptions()
             {
                 OverrideExistFile = true,
                 BufferSize = buffer,
-                PoolSize = pool,
             };
             var progress = new Progress<CopyFileUtility.CopyFileProgress>(x =>
             {

@@ -74,18 +74,6 @@ namespace BufferCopy
             {
                 var arg = args[0];
                 args = args.Slice(1);
-                option.PoolSize = int.Parse(arg);
-            }
-            if (!args.IsEmpty)
-            {
-                var arg = args[0];
-                args = args.Slice(1);
-                option.PoolSize = int.Parse(args[3]);
-            }
-            if (!args.IsEmpty)
-            {
-                var arg = args[0];
-                args = args.Slice(1);
                 option.ReportInterval = TimeSpan.FromSeconds(double.Parse(arg));
             }
             return option;
