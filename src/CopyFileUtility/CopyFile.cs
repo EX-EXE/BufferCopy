@@ -85,7 +85,7 @@ public partial class CopyFileUtility
         }, linkedCancelToken);
 
         // MemoryPool
-        memoryPool.Reset();
+        memoryPool.Reset(true);
 
         // Channel
         var channelOption = new UnboundedChannelOptions()
