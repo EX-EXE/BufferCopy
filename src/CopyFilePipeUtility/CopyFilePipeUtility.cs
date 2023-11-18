@@ -138,7 +138,8 @@ public static class CopyFilePipeUtility
         var totalSec = stopwatch.Elapsed.TotalSeconds;
         if (0 < totalSec && 0 < currentWriteSize && 0 < maxLength)
         {
-            var writeBytePerSec = currentWriteSize * (1 / totalSec);
+            var perSec = (1 / totalSec);
+            var writeBytePerSec = perSec < int.MaxValue / currentWriteSize ? currentWriteSize * perSec : int.MaxValue;
             var writeNextByteSize = (int)writeBytePerSec;
 
             nextWriteSize = CalcMaxBufferSize(writeNextByteSize, maxLength);
