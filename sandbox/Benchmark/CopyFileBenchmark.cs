@@ -63,5 +63,11 @@ namespace Benchmark
             });
             await CopyFileUtility.CopyFileAsync(srcFile, dstFile, option, progress);
         }
+
+        [Benchmark(Description = "CopyFilePipeUtility.CopyFileAsync")]
+        public async Task CopyFilePipe()
+        {
+            await CopyFilePipeUtility.CopyFileAsync(srcFile, dstFile);
+        }
     }
 }
