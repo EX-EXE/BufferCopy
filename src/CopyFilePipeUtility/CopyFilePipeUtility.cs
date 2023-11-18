@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32.SafeHandles;
+using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
@@ -79,48 +80,49 @@ public static class CopyFilePipeUtility
                 currentBufferSize = nextWriteSize;
             }
         }
-
         await pipeWriter.CompleteAsync().ConfigureAwait(false);
 
     }
     static async ValueTask ReadPipeAsync(PipeReader pipeReader, SafeFileHandle dstHandle, CancellationToken cancellationToken)
     {
         var stopwatch = new Stopwatch();
-        var currentBufferSize = firstMeasurementSize;
         var totalWriteLength = 0L;
         while (true)
         {
-
             var readResult = await pipeReader.ReadAsync(cancellationToken).ConfigureAwait(false);
             var readBuffer = readResult.Buffer;
-            var writeSize = 0L;
+            var readBufferExamined = readBuffer.End;
             var readLength = readBuffer.Length;
-            while (writeSize < readLength)
+
+            var currentWriteSize = 0;
+            var currentBufferSize = firstMeasurementSize;
+            while (0 < readBuffer.Length)
             {
                 stopwatch.Restart();
-                var writeSequence = readBuffer.Slice(writeSize, currentBufferSize);
-                foreach (var memory in writeSequence)
+                var currentBuffer = readBuffer.Slice(0, currentBufferSize);
+                readBuffer = readBuffer.Slice(currentBufferSize);
+                foreach (var memory in currentBuffer)
                 {
                     await System.IO.RandomAccess.WriteAsync(dstHandle, memory, totalWriteLength, cancellationToken).ConfigureAwait(false);
-                    writeSize += memory.Length;
+                    currentWriteSize += memory.Length;
                     totalWriteLength += memory.Length;
                 }
                 stopwatch.Stop();
 
                 // Calc BufferSize
-                if (TryCalcBufferSize(stopwatch, writeSize, readLength - writeSize, out var nextWriteSize))
+                if (TryCalcBufferSize(stopwatch, currentWriteSize, readLength - currentWriteSize, out var nextWriteSize))
                 {
                     currentBufferSize = nextWriteSize;
                 }
             }
 
-            pipeReader.AdvanceTo(readBuffer.Start, readBuffer.End);
+            pipeReader.AdvanceTo(readBufferExamined);
             if (readResult.IsCompleted)
             {
                 break;
             }
         }
-
+        System.IO.RandomAccess.FlushToDisk(dstHandle);
         await pipeReader.CompleteAsync().ConfigureAwait(false);
     }
 
