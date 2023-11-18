@@ -18,7 +18,7 @@ public static class CopyFilePipeUtility
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var srcHandle = System.IO.File.OpenHandle(src, FileMode.Open, FileAccess.Read, FileShare.Read, FileOptions.SequentialScan, 0);
+        using var srcHandle = System.IO.File.OpenHandle(src, FileMode.Open, FileAccess.Read, FileShare.Read, FileOptions.SequentialScan, 0);
         var srcLength = System.IO.RandomAccess.GetLength(srcHandle);
 
         var dstDir = System.IO.Path.GetDirectoryName(dst);
@@ -30,7 +30,7 @@ public static class CopyFilePipeUtility
         {
             System.IO.File.Delete(dst);
         }
-        var dstHandle = System.IO.File.OpenHandle(dst, FileMode.CreateNew, FileAccess.Write, FileShare.Read, FileOptions.SequentialScan | FileOptions.WriteThrough, 0);
+        using var dstHandle = System.IO.File.OpenHandle(dst, FileMode.CreateNew, FileAccess.Write, FileShare.Read, FileOptions.SequentialScan | FileOptions.WriteThrough, 0);
         System.IO.RandomAccess.SetLength(dstHandle, srcLength);
 
         var pipe = new Pipe();
