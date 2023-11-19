@@ -45,10 +45,10 @@ jobs:
             runtime: "linux-x64"
             publish: BufferCopy
             upload: BufferCopy.linux-x64
-          - platform: "ubuntu-latest"
-            runtime: "linux-arm64"
-            publish: BufferCopy
-            upload: BufferCopy.linux-arm64
+          #- platform: "ubuntu-latest"
+          #  runtime: "linux-arm64"
+          #  publish: BufferCopy
+          #  upload: BufferCopy.linux-arm64
     runs-on: ${{ matrix.platform }}
     
     steps:
